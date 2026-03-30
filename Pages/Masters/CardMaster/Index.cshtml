@@ -1,0 +1,224 @@
+@page
+@model PLCARD.Pages.Masters.CardMaster.IndexModel
+@{
+    ViewData["Title"] = "Card Master Management";
+}
+
+<style>
+    /* DEEP MODERN SHADOWS */
+    .shadow-heavy {
+        box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.15) !important;
+        border: none !important;
+    }
+
+    /* Custom style for the red asterisk */
+    .required-star {
+        color: #dc3545;
+        font-weight: bold;
+        margin-left: 2px;
+    }
+
+    /* Full-width table radius and overflow fixes */
+    .table-responsive {
+        width: 100%;
+        border-radius: 0 0 12px 12px;
+    }
+
+    /* Form and Label Styling */
+    .discount-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #495057;
+        text-transform: uppercase;
+        margin-bottom: 3px;
+    }
+
+    .form-control:invalid {
+        border-color: #dee2e6;
+    }
+</style>
+
+<div class="container-fluid py-4 px-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="fa fa-layer-group text-primary me-2"></i>Individual Card Master</h2>
+            <p class="text-muted mb-0 small ps-5">Configure pricing and benefits for patient health cards</p>
+        </div>
+        <button type="button" class="btn btn-primary shadow-sm rounded-pill px-4 py-2 fw-bold" onclick="openModal(0, '', 0, 0, 0, 0, 0, 0, 0, 0)">
+            <i class="fa fa-plus-circle me-1"></i> Add New Card Plan
+        </button>
+    </div>
+
+    <div class="card shadow-heavy border-0 mb-5 mt-2" style="border-radius: 12px;">
+        <div class="card-body p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table id="cardMasterTable" class="table table-hover align-middle mb-0">
+                    <thead class="table-dark text-nowrap">
+                        <tr>
+                            <th class="ps-4 py-3">Plan Name</th>
+                            <th>Cost</th>
+                            <th>OPD%</th>
+                            <th>IPD%</th>
+                            <th>Lab%</th>
+                            <th>Phar%</th>
+                            <th>Diag%</th>
+                            <th>Home%</th>
+                            <th>Amb%</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.CardPlans)
+                        {
+                            <tr>
+                                <td class="ps-4"><strong>@item.Vchcname</strong></td>
+                                <td class="fw-bold text-success">₹@item.Intcostcard</td>
+                                <td>@item.Flopd%</td>
+                                <td>@item.Flipd%</td>
+                                <td>@item.Fllab%</td>
+                                <td>@item.Flpharmacy%</td>
+                                <td>@item.Fldiagno%</td>
+                                <td>@item.Flhomecare%</td>
+                                <td>@item.Flambulanceipd%</td>
+                                <td class="text-center">
+                                    <span class="badge @(item.BitActive ? "bg-success" : "bg-secondary") px-3 py-2 shadow-sm">
+                                        @(item.BitActive ? "Active" : "Inactive")
+                                    </span>
+                                </td>
+                                <td class="text-center pe-4">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button class="btn btn-sm btn-outline-primary"
+                                                onclick="openModal(@item.IntCard, '@item.Vchcname', @item.Intcostcard, @item.Flopd, @item.Flipd, @item.Fllab, @item.Flpharmacy, @item.Fldiagno, @item.Flhomecare, @item.Flambulanceipd)">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                        
+                                        <form method="post" asp-page-handler="ToggleStatus" asp-route-id="@item.IntCard" class="d-inline">
+                                            <button type="submit" class="btn btn-sm @(item.BitActive ? "btn-outline-warning" : "btn-outline-success")">
+                                                <i class="fa @(item.BitActive ? "fa-ban" : "fa-check")"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="upsertModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-heavy border-0">
+            <form method="post" asp-page-handler="Save" id="upsertForm">
+                <div class="modal-header bg-dark text-white border-0 py-3">
+                    <h5 class="modal-title fw-bold" id="modalTitle">Card Plan Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" asp-for="CardModel.IntCard" id="hiddenId" />
+                    
+                    <div class="row">
+                        <div class="col-md-8 mb-4">
+                            <label class="form-label fw-bold">Plan Name <span class="required-star">*</span></label>
+                            <input asp-for="CardModel.Vchcname" id="planNameInput" class="form-control form-control-lg bg-light border-0 shadow-sm" placeholder="e.g. GOLD" required />
+                            <span asp-validation-for="CardModel.Vchcname" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <label class="form-label fw-bold">Card Cost <span class="required-star">*</span></label>
+                            <div class="input-group input-group-lg shadow-sm">
+                                <span class="input-group-text bg-light border-0">₹</span>
+                                <input asp-for="CardModel.Intcostcard" id="costInput" type="number" class="form-control bg-light border-0" required min="0" />
+                            </div>
+                            <span asp-validation-for="CardModel.Intcostcard" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <hr class="my-4 opacity-10" />
+                    <h6 class="text-muted mb-3 fw-bold small"><i class="fa fa-percentage me-1 text-primary"></i> DISCOUNT CONFIGURATION (REQUIRED)</h6>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="discount-label">OPD %</label>
+                            <input asp-for="CardModel.Flopd" id="opdInput" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required min="0" max="100" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="discount-label">IPD %</label>
+                            <input asp-for="CardModel.Flipd" id="ipdInput" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required min="0" max="100" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="discount-label">Lab %</label>
+                            <input asp-for="CardModel.Fllab" id="labInput" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required min="0" max="100" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="discount-label">Pharmacy %</label>
+                            <input asp-for="CardModel.Flpharmacy" id="pharInput" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required min="0" max="100" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="discount-label">Diagnostics %</label>
+                            <input asp-for="CardModel.Fldiagno" id="diagInput" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required min="0" max="100" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="discount-label">Home Care %</label>
+                            <input asp-for="CardModel.Flhomecare" id="homeInput" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required min="0" max="100" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="discount-label">Ambulance IPD %</label>
+                            <input asp-for="CardModel.Flambulanceipd" id="ambInput" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required min="0" max="100" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light py-3">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-5 shadow-sm fw-bold">
+                        <i class="fa fa-save me-1"></i> Save Plan Record
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(document).ready(function () {
+        $('#cardMasterTable').DataTable({
+        "pageLength": 10,
+        "responsive": true,
+        "language": {
+        "search": "_INPUT_",
+        "searchPlaceholder": "Quick search cards..."
+        }
+        });
+        });
+
+        function openModal(id, name, cost, opd, ipd, lab, phar, diag, home, amb) {
+        var form = $('#upsertForm');
+        form.validate().resetForm();
+        form.find('.is-invalid').removeClass('is-invalid');
+
+        // Fill values
+        document.getElementById('hiddenId').value = id;
+        document.getElementById('planNameInput').value = name;
+        document.getElementById('costInput').value = cost || 0;
+        document.getElementById('opdInput').value = opd || 0;
+        document.getElementById('ipdInput').value = ipd || 0;
+        document.getElementById('labInput').value = lab || 0;
+        document.getElementById('pharInput').value = phar || 0;
+        document.getElementById('diagInput').value = diag || 0;
+        document.getElementById('homeInput').value = home || 0;
+        document.getElementById('ambInput').value = amb || 0;
+
+        document.getElementById('modalTitle').innerText = id === 0 ? "Add New Card Plan" : "Edit Card Plan: " + name;            
+        var myModal = new bootstrap.Modal(document.getElementById('upsertModal'));
+        myModal.show();
+        }
+    </script>
+}

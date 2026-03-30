@@ -1,10 +1,82 @@
-﻿@page
+@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "PLCARD Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container mt-4">
+    <div class="row mb-5 justify-content-center">
+        <div class="col-md-8 text-center">
+            <h4 class="mb-3 text-muted">Quick UHID Verification</h4>
+            <form method="post" asp-page-handler="Search" class="input-group input-group-lg shadow-sm">
+                <input type="text" name="uhid" class="form-control border-primary" placeholder="Enter Patient UHID (e.g. 10025)..." required>
+                <button class="btn btn-primary px-4" type="submit">
+                    <i class="fa fa-search"></i> Verify Card
+                </button>
+            </form>
+            @if (TempData["SearchError"] != null)
+            {
+                <div class="text-danger mt-2 fw-bold animate__animated animate__shakeX">
+                    <i class="fa fa-exclamation-circle"></i> @TempData["SearchError"]
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="row g-4">
+    </div>
 </div>
+
+@if (Model.SearchResult != null)
+{
+    <div class="modal fade" id="resultModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="fa fa-check-circle me-2"></i> Card Verified!</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="display-6 fw-bold text-success">@Model.SearchResult.VchCardType</div>
+                        <span class="badge bg-light text-dark border">Privilege Card Member</span>
+                    </div>
+                    
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted">Patient Name:</span>
+                            <span class="fw-bold">@Model.SearchResult.Vchname</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted">UHID Number:</span>
+                            <span class="fw-bold">@Model.SearchResult.VchUhidno</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted">Valid Since:</span>
+                            <span>@Model.SearchResult.Dtcreated?.ToString("dd MMM yyyy")</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted">Contact:</span>
+                            <span>@Model.SearchResult.Vchcontactno</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // Automatically show the modal if a result exists
+        $(document).ready(function () {
+            var myModal = new bootstrap.Modal(document.getElementById('resultModal'));
+            if (myModal) {
+                myModal.show();
+            }
+        });
+    </script>
+}

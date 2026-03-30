@@ -43,5 +43,7 @@ public partial class TblCardMaster
 
     public int? FkBId { get; set; }
 
-    public virtual ICollection<TblCardRegistration> TblCardRegistrations { get; set; } = new List<TblCardRegistration>();
+    public bool BitActive { get; set; }
+
+    public virtual ICollection<TblCardRegistration> TblCardRegistration { get; set; } = new List<TblCardRegistration>();
 }

@@ -13,19 +13,51 @@ public partial class TblCompanyRegistration
 
     public int IntPlanId { get; set; }
 
+    public string VchAgreementNo { get; set; }
+
     public string VchAgreementPath { get; set; }
 
-    public DateTime? DtRegistration { get; set; }
+    public DateTime? DtAgreementStart { get; set; }
 
-    public bool? BitActive { get; set; }
+    public DateTime? DtAgreementEnd { get; set; }
+
+    public string VchGstNo { get; set; }
+
+    public string VchPanNo { get; set; }
+
+    public bool BitIsCredit { get; set; }
 
     public string VchContactPerson { get; set; }
 
+    public string VchDesignation { get; set; }
+
     public string VchContactNo { get; set; }
+
+    public string VchEmail { get; set; }
+
+    public string VchFullAddress { get; set; }
+
+    public string VchCity { get; set; }
+
+    public string VchPincode { get; set; }
+
+    public bool BitActive { get; set; }
+
+    public DateTime? DtRegistration { get; set; }
 
     public string VchCreatedBy { get; set; }
 
-    public int? FkBId { get; set; }
+    public string VchCreatedHost { get; set; }
+
+    public DateTime? DtUpdated { get; set; }
+
+    public string VchUpdatedBy { get; set; }
+
+    public string VchUpdatedHost { get; set; }
+
+    public int? FkBid { get; set; }
+
+    public DateTime? DtCreated { get; set; }
 
     public virtual TblCorporatePlanMaster IntPlan { get; set; }
 }

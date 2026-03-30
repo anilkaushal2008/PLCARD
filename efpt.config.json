@@ -27,11 +27,11 @@
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[tblCompanyRegistration]",
+         "Name": "[dbo].[TblCompanyRegistration]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[tblCorporatePlanMaster]",
+         "Name": "[dbo].[TblCorporatePlanMaster]",
          "ObjectType": 0
       }
    ],
@@ -47,7 +47,7 @@
    "UseFluentApiOnly": true,
    "UseHandleBars": false,
    "UseHierarchyId": false,
-   "UseInflector": true,
+   "UseInflector": false,
    "UseInternalAccessModifiersForSprocsAndFunctions": false,
    "UseLegacyPluralizer": false,
    "UseManyToManyEntity": false,

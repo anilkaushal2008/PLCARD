@@ -13,23 +13,26 @@ public partial class PLCARDContext : DbContext
     {
     }
 
-    public virtual DbSet<TblCardMaster> TblCardMasters { get; set; }
+    public virtual DbSet<TblCardMaster> TblCardMaster { get; set; }
 
-    public virtual DbSet<TblCardRegistration> TblCardRegistrations { get; set; }
+    public virtual DbSet<TblCardRegistration> TblCardRegistration { get; set; }
 
-    public virtual DbSet<TblCompanyRegistration> TblCompanyRegistrations { get; set; }
+    public virtual DbSet<TblCompanyRegistration> TblCompanyRegistration { get; set; }
 
-    public virtual DbSet<TblCorporatePlanMaster> TblCorporatePlanMasters { get; set; }
+    public virtual DbSet<TblCorporatePlanMaster> TblCorporatePlanMaster { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.UseCollation("SQL_1xCompat_CP850_CI_AS");
+
         modelBuilder.Entity<TblCardMaster>(entity =>
         {
-            entity.HasKey(e => e.IntCard);
+            entity.HasKey(e => e.IntCard).HasName("PK_tblCardMaster_1");
 
             entity.ToTable("tblCardMaster");
 
             entity.Property(e => e.IntCard).HasColumnName("intCard");
+            entity.Property(e => e.BitActive).HasDefaultValue(true);
             entity.Property(e => e.Code).HasColumnName("code");
             entity.Property(e => e.Dtcreated)
                 .HasDefaultValueSql("(getdate())")
@@ -78,7 +81,7 @@ public partial class PLCARDContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("dtDOB");
             entity.Property(e => e.Dtcreated)
-                .HasDefaultValueSql("(getdate())")
+                .HasDefaultValueSql("(getdate())", "DF__tblCardRe__dtcre__276EDEB3")
                 .HasColumnType("datetime")
                 .HasColumnName("dtcreated");
             entity.Property(e => e.Dtupdated)
@@ -166,96 +169,110 @@ public partial class PLCARDContext : DbContext
                 .HasColumnName("vchupdatedipused");
             entity.Property(e => e.Yr).HasColumnName("yr");
 
-            entity.HasOne(d => d.IntCard).WithMany(p => p.TblCardRegistrations)
+            entity.HasOne(d => d.IntCard).WithMany(p => p.TblCardRegistration)
                 .HasForeignKey(d => d.IntCardId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_CardReg_CardMaster");
+                .HasConstraintName("FK_tblCardRegistration_tblCardMaster");
         });
 
         modelBuilder.Entity<TblCompanyRegistration>(entity =>
         {
             entity.HasKey(e => e.IntCompanyId);
 
-            entity.ToTable("tblCompanyRegistration");
-
-            entity.Property(e => e.IntCompanyId).HasColumnName("intCompanyID");
-            entity.Property(e => e.BitActive)
-                .HasDefaultValue(true)
-                .HasColumnName("bitActive");
+            entity.Property(e => e.BitActive).HasDefaultValue(true);
+            entity.Property(e => e.DtAgreementEnd).HasColumnType("datetime");
+            entity.Property(e => e.DtAgreementStart).HasColumnType("datetime");
+            entity.Property(e => e.DtCreated)
+                .HasColumnType("datetime")
+                .HasColumnName("dtCreated");
             entity.Property(e => e.DtRegistration)
                 .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime")
-                .HasColumnName("dtRegistration");
-            entity.Property(e => e.FkBId).HasColumnName("fk_b_ID");
-            entity.Property(e => e.IntPlanId).HasColumnName("intPlanID");
+                .HasColumnType("datetime");
+            entity.Property(e => e.DtUpdated).HasColumnType("datetime");
+            entity.Property(e => e.FkBid).HasColumnName("FkBId");
+            entity.Property(e => e.VchAgreementNo)
+                .HasMaxLength(50)
+                .IsUnicode(false);
             entity.Property(e => e.VchAgreementPath)
                 .HasMaxLength(500)
-                .IsUnicode(false)
-                .HasColumnName("vchAgreementPath");
+                .IsUnicode(false);
+            entity.Property(e => e.VchCity)
+                .HasMaxLength(100)
+                .IsUnicode(false);
             entity.Property(e => e.VchCompanyName)
                 .IsRequired()
                 .HasMaxLength(200)
-                .IsUnicode(false)
-                .HasColumnName("vchCompanyName");
+                .IsUnicode(false);
             entity.Property(e => e.VchContactNo)
                 .HasMaxLength(15)
-                .IsUnicode(false)
-                .HasColumnName("vchContactNo");
+                .IsUnicode(false);
             entity.Property(e => e.VchContactPerson)
                 .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("vchContactPerson");
+                .IsUnicode(false);
             entity.Property(e => e.VchCreatedBy)
                 .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("vchCreatedBy");
+                .IsUnicode(false);
+            entity.Property(e => e.VchCreatedHost)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.VchDesignation)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.VchEmail)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.VchFullAddress)
+                .HasMaxLength(500)
+                .IsUnicode(false);
+            entity.Property(e => e.VchGstNo)
+                .HasMaxLength(15)
+                .IsUnicode(false);
+            entity.Property(e => e.VchPanNo)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.VchPincode)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.VchUpdatedBy)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.VchUpdatedHost)
+                .HasMaxLength(50)
+                .IsUnicode(false);
 
-            entity.HasOne(d => d.IntPlan).WithMany(p => p.TblCompanyRegistrations)
+            entity.HasOne(d => d.IntPlan).WithMany(p => p.TblCompanyRegistration)
                 .HasForeignKey(d => d.IntPlanId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Company_CorpPlan");
+                .HasConstraintName("FK_TblCompanyRegistration_TblCorporatePlanMaster");
         });
 
         modelBuilder.Entity<TblCorporatePlanMaster>(entity =>
         {
-            entity.HasKey(e => e.IntPlanId);
+            entity.HasKey(e => e.IntPlanId).HasName("PK__TblCorpo__60CE315AA3A526AA");
 
-            entity.ToTable("tblCorporatePlanMaster");
-
-            entity.Property(e => e.IntPlanId).HasColumnName("intPlanID");
-            entity.Property(e => e.BitWellnessCamp)
-                .HasDefaultValue(false)
-                .HasColumnName("bitWellnessCamp");
+            entity.Property(e => e.BitActive).HasDefaultValue(true);
+            entity.Property(e => e.BitDeleted).HasDefaultValue(false);
+            entity.Property(e => e.DcAmbulance).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.DcHomecare).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.DcIpd).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.DcLab).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.DcOpdConsult).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.DcOpdProcedure).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.DcPharmacy).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.DcRadiology).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.DtCreated)
                 .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime")
-                .HasColumnName("dtCreated");
-            entity.Property(e => e.FkBId).HasColumnName("fk_b_ID");
-            entity.Property(e => e.FlAmbulance).HasColumnName("flAmbulance");
-            entity.Property(e => e.FlDaycare).HasColumnName("flDaycare");
-            entity.Property(e => e.FlEmergencyTest).HasColumnName("flEmergencyTest");
-            entity.Property(e => e.FlIpd).HasColumnName("flIPD");
-            entity.Property(e => e.FlLab).HasColumnName("flLab");
-            entity.Property(e => e.FlOpdconsult).HasColumnName("flOPDConsult");
-            entity.Property(e => e.FlOpdproc).HasColumnName("flOPDProc");
-            entity.Property(e => e.FlPetCt).HasColumnName("flPetCt");
-            entity.Property(e => e.FlRadiology).HasColumnName("flRadiology");
+                .HasColumnType("datetime");
+            entity.Property(e => e.DtUpdated).HasColumnType("datetime");
             entity.Property(e => e.VchCreatedBy)
                 .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("vchCreatedBy");
-            entity.Property(e => e.VchExclusions)
-                .IsUnicode(false)
-                .HasColumnName("vchExclusions");
+                .IsUnicode(false);
             entity.Property(e => e.VchPlanName)
                 .IsRequired()
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.VchUpdatedBy)
                 .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("vchPlanName");
-            entity.Property(e => e.VchTier)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("vchTier");
+                .IsUnicode(false);
         });
 
         OnModelCreatingPartial(modelBuilder);

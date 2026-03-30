@@ -1,0 +1,210 @@
+@page
+@model PLCARD.Pages.Masters.PlanMaster.IndexModel
+@{
+    ViewData["Title"] = "Corporate Plan Master";
+}
+
+<style>
+    /* 1. APPLY HEAVY SHADOWS */
+    .shadow-heavy {
+        box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.15) !important;
+        border: none !important;
+    }
+
+    .required-star {
+        color: #dc3545;
+        font-weight: bold;
+        margin-left: 2px;
+    }
+
+    /* 2. FULL WIDTH TABLE ADJUSTMENTS */
+    .table-responsive {
+        width: 100%;
+        border-radius: 0 0 12px 12px;
+    }
+
+    .form-control:invalid {
+        border-color: #dee2e6;
+    }
+
+    .discount-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #495057;
+        text-transform: uppercase;
+        margin-bottom: 3px;
+    }
+</style>
+
+<div class="container-fluid py-4 px-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="fa fa-layer-group text-primary me-2"></i>Corporate Plan Master</h2>
+            <p class="text-muted mb-0 small ps-5">Manage hospital-wide corporate discount configurations</p>
+        </div>
+        <button type="button" class="btn btn-primary shadow-sm rounded-pill px-4 py-2 fw-bold" onclick="openModal(0, '', 0, 0, 0, 0, 0, 0, 0, 0)">
+            <i class="fa fa-plus-circle me-1"></i> Add New Corporate Plan
+        </button>
+    </div>
+
+    <div class="card shadow-heavy border-0 mb-5 mt-2" style="border-radius: 12px;">
+        <div class="card-body p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table id="planMasterTable" class="table table-hover align-middle mb-0">
+                    <thead class="table-dark text-nowrap">
+                        <tr>
+                            <th class="ps-4 py-3">Plan Name</th>
+                            <th>OPD Con%</th>
+                            <th>OPD Pro%</th>
+                            <th>Rad%</th>
+                            <th>Lab%</th>
+                            <th>Phar%</th>
+                            <th>Home%</th>
+                            <th>IPD%</th>
+                            <th>Amb%</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.CorporatePlans)
+                        {
+                            <tr>
+                                <td class="ps-4"><strong>@item.VchPlanName</strong></td>
+                                <td>@item.DcOpdConsult%</td>
+                                <td>@item.DcOpdProcedure%</td>
+                                <td>@item.DcRadiology%</td>
+                                <td>@item.DcLab%</td>
+                                <td>@item.DcPharmacy%</td>
+                                <td>@item.DcHomecare%</td>
+                                <td>@item.DcIpd%</td>
+                                <td>@item.DcAmbulance%</td>
+                                <td class="text-center">
+                                    <span class="badge @(item.BitActive == true ? "bg-success" : "bg-secondary") px-3 py-2 shadow-sm">
+                                        @(item.BitActive == true ? "ACTIVE" : "INACTIVE")
+                                    </span>
+                                </td>
+                                <td class="text-center pe-4">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button class="btn btn-sm btn-outline-primary"
+                                                onclick="openModal(@item.IntPlanId, '@item.VchPlanName', @item.DcOpdConsult, @item.DcOpdProcedure, @item.DcRadiology, @item.DcLab, @item.DcPharmacy, @item.DcHomecare, @item.DcIpd, @item.DcAmbulance)">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                        <form method="post" asp-page-handler="ToggleStatus" asp-route-id="@item.IntPlanId" class="d-inline">
+                                            <button type="submit" class="btn btn-sm @(item.BitActive == true ? "btn-outline-warning" : "btn-outline-success")">
+                                                <i class="fa @(item.BitActive == true ? "fa-ban" : "fa-check")"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="upsertModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-heavy border-0">
+            <form method="post" asp-page-handler="Save" id="upsertForm">
+                <div class="modal-header bg-dark text-white border-0 py-3">
+                    <h5 class="modal-title fw-bold" id="modalTitle">Corporate Plan Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" asp-for="PlanModel.IntPlanId" id="hiddenId" />
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Plan Identity Name <span class="required-star">*</span></label>
+                        <input asp-for="PlanModel.VchPlanName" id="planNameInput" class="form-control form-control-lg bg-light border-0 shadow-sm" placeholder="e.g. PLATINUM-CORP" required />
+                    </div>
+
+                    <hr class="my-4 opacity-10" />
+                    <h6 class="text-muted mb-3 fw-bold small"><i class="fa fa-percentage me-1 text-primary"></i> DISCOUNT CONFIGURATION</h6>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="discount-label">OPD Consult %</label>
+                            <input asp-for="PlanModel.DcOpdConsult" id="opdC" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="discount-label">OPD Procedure %</label>
+                            <input asp-for="PlanModel.DcOpdProcedure" id="opdP" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="discount-label">Radiology %</label>
+                            <input asp-for="PlanModel.DcRadiology" id="radio" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="discount-label">Laboratory %</label>
+                            <input asp-for="PlanModel.DcLab" id="lab" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="discount-label">Pharmacy %</label>
+                            <input asp-for="PlanModel.DcPharmacy" id="phar" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="discount-label">Homecare %</label>
+                            <input asp-for="PlanModel.DcHomecare" id="home" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="discount-label">IPD %</label>
+                            <input asp-for="PlanModel.DcIpd" id="ipd" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="discount-label">Ambulance %</label>
+                            <input asp-for="PlanModel.DcAmbulance" id="amb" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light py-3">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-5 shadow-sm fw-bold">
+                        <i class="fa fa-save me-1"></i> Save Plan Record
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(document).ready(function () {
+        $('#planMasterTable').DataTable({
+        "pageLength": 10,
+        "responsive": true,
+        "language": {
+        "search": "_INPUT_",
+        "searchPlaceholder": "Quick Search..."
+        }
+        });
+        });
+
+        function openModal(id, name, opdc, opdp, rad, lab, phar, home, ipd, amb) {
+        document.getElementById('hiddenId').value = id;
+        document.getElementById('planNameInput').value = name;
+        document.getElementById('opdC').value = opdc || 0;
+        document.getElementById('opdP').value = opdp || 0;
+        document.getElementById('radio').value = rad || 0;
+        document.getElementById('lab').value = lab || 0;
+        document.getElementById('phar').value = phar || 0;
+        document.getElementById('home').value = home || 0;
+        document.getElementById('ipd').value = ipd || 0;
+        document.getElementById('amb').value = amb || 0;
+
+        document.getElementById('modalTitle').innerText = id === 0 ? "Add New Corporate Plan" : "Edit Plan: " + name;
+            
+        var myModal = new bootstrap.Modal(document.getElementById('upsertModal'));
+        myModal.show();
+        }
+    </script>
+}

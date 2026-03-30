@@ -1,4 +1,256 @@
-﻿@page
+@page "{id:int?}"
 @model PLCARD.Pages.Corporates.RegisterModel
 @{
+    ViewData["Title"] = Model.Company.IntCompanyId == 0 ? "Corporate Registration" : "Edit Corporate Profile";
 }
+
+<style>
+    :root {
+        --primary-indigo: #4338ca;
+        --error-red: #ef4444;
+    }
+
+    /* ULTRA DEEP SHADOWS */
+    .shadow-ultra {
+        box-shadow: 0 35px 70px rgba(0, 0, 0, 0.2), 0 15px 30px rgba(0, 0, 0, 0.08) !important;
+        border: none !important;
+    }
+
+    .glass-card {
+        border-radius: 30px;
+        background: #fff;
+    }
+
+    /* REQUIRED STAR */
+    .text-danger-star {
+        color: var(--error-red);
+        font-weight: bold;
+        margin-left: 2px;
+    }
+
+    .form-label {
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: #64748b;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+
+    .form-control-modern {
+        border: 2px solid #f1f5f9;
+        border-radius: 14px;
+        padding: 0.85rem 1.2rem;
+        background: #f8fafc;
+        transition: all 0.3s ease;
+        font-weight: 600;
+    }
+
+        .form-control-modern:focus {
+            background: #fff;
+            border-color: var(--primary-indigo);
+            box-shadow: 0 0 0 6px rgba(67, 56, 202, 0.12);
+            outline: none;
+        }
+
+    /* VALIDATION MESSAGES */
+    .field-validation-error {
+        color: var(--error-red);
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-top: 4px;
+        display: block;
+    }
+
+    .section-divider {
+        font-size: 0.9rem;
+        font-weight: 900;
+        color: var(--primary-indigo);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin: 40px 0 25px 0;
+    }
+
+        .section-divider::after {
+            content: "";
+            flex: 1;
+            height: 3px;
+            background: linear-gradient(to right, #f1f5f9, transparent);
+            border-radius: 10px;
+        }
+
+    .btn-save {
+        background: linear-gradient(135deg, #4338ca, #3b82f6);
+        color: white;
+        border-radius: 18px;
+        padding: 16px 50px;
+        font-weight: 800;
+        border: none;
+        transition: all 0.4s ease;
+    }
+
+        .btn-save:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(67, 56, 202, 0.4);
+            color: white;
+        }
+    
+    .secure-badge {
+        background: #f0fdf4;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
+        padding: 6px 14px;
+        border-radius: 10px;
+        font-weight: 800;
+        font-size: 0.7rem;
+    }
+</style>
+
+<div class="container-fluid py-4 px-md-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex align-items-center gap-3">
+            <a asp-page="./Index" class="btn btn-white border shadow-sm rounded-circle p-2" style="width:45px; height:45px; display:flex; align-items:center; justify-content:center;">
+                <i class="fa fa-arrow-left text-muted"></i>
+            </a>
+            <div>
+                <h2 class="fw-bold mb-0" style="background: linear-gradient(90deg, #1e1b4b, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -1px;">
+                    @(Model.Company.IntCompanyId == 0 ? "Corporate Registration" : "Edit Profile")
+                </h2>
+                <div class="secure-badge mt-1">
+                    <i class="fa fa-shield-halved me-1"></i> REGISTRATION FORM
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="corporateForm">
+        <input type="hidden" asp-for="Company.IntCompanyId" />
+        <input type="hidden" asp-for="Company.VchAgreementPath" />
+
+        <div class="glass-card shadow-ultra p-4 p-md-4">
+            
+            <div class="section-divider"><i class="fa fa-building"></i> 1. Organization Information</div>
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Company Name <span class="text-danger-star">*</span></label>
+                    <input asp-for="Company.VchCompanyName" class="form-control form-control-modern" placeholder="Legal Entity Name" />
+                    <span asp-validation-for="Company.VchCompanyName"></span>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Corporate Plan <span class="text-danger-star">*</span></label>
+                    <select asp-for="Company.IntPlanId" asp-items="Model.PlanList" class="form-select form-control-modern">
+                        <option value="">-- Choose Assigned Plan --</option>
+                    </select>
+                    <span asp-validation-for="Company.IntPlanId"></span>
+                </div>
+                <div class="col-md-2 text-center">
+                    <label class="form-label d-block">Credit Mode</label>
+                    <div class="form-check form-switch d-inline-block mt-2">
+                        <input asp-for="Company.BitIsCredit" class="form-check-input" type="checkbox" style="width: 3.5rem; height: 1.7rem; cursor:pointer;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-divider"><i class="fa fa-file-contract"></i> 2. Agreement Setup</div>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <label class="form-label">Agreement No</label>
+                        <input asp-for="Company.VchAgreementNo" class="form-control form-control-modern" placeholder="Contract Ref #" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Start Date</label>
+                        <input asp-for="Company.DtAgreementStart" type="date" class="form-control form-control-modern" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">End Date (Expiry)</label>
+                        <input asp-for="Company.DtAgreementEnd" type="date" class="form-control form-control-modern" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Upload PDF</label>
+                        <input type="file" asp-for="AgreementUpload" class="form-control form-control-modern" accept=".pdf" />
+                        @if (!string.IsNullOrEmpty(Model.Company.VchAgreementPath))
+                        {
+                            <div class="mt-2 text-end">
+                                <a href="@Model.Company.VchAgreementPath" target="_blank" class="text-primary fw-bold small text-decoration-none">
+                                    <i class="fa fa-paperclip me-1"></i> View Registered Contract
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="section-divider"><i class="fa fa-address-card"></i> 3. Compliance & POC</div>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <label class="form-label">GSTIN</label>
+                        <input asp-for="Company.VchGstNo" id="gstInput" class="form-control form-control-modern text-uppercase" placeholder="22AAAAA0000A1Z5" />
+                        <span asp-validation-for="Company.VchGstNo"></span>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">PAN Card No</label>
+                        <input asp-for="Company.VchPanNo" id="panInput" class="form-control form-control-modern text-uppercase" placeholder="ABCDE1234F" />
+                        <span asp-validation-for="Company.VchPanNo"></span>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Contact Person <span class="text-danger-star">*</span></label>
+                        <input asp-for="Company.VchContactPerson" class="form-control form-control-modern" placeholder="Full Name" />
+                        <span asp-validation-for="Company.VchContactPerson"></span>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Official Mobile <span class="text-danger-star">*</span></label>
+                        <input asp-for="Company.VchContactNo" class="form-control form-control-modern" placeholder="10 Digit Number" />
+                        <span asp-validation-for="Company.VchContactNo"></span>
+                    </div>
+                </div>
+
+                <div class="section-divider"><i class="fa fa-location-dot"></i> 4. Communication Address</div>
+                <div class="row g-4 mb-5">
+                    <div class="col-md-6">
+                        <label class="form-label">Full Address</label>
+                        <input asp-for="Company.VchFullAddress" class="form-control form-control-modern" placeholder="Plot No, Street, Area..." />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">City</label>
+                        <input asp-for="Company.VchCity" class="form-control form-control-modern" placeholder="City Name" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Pincode</label>
+                        <input asp-for="Company.VchPincode" class="form-control form-control-modern" placeholder="6 Digits" />
+                        <span asp-validation-for="Company.VchPincode"></span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-3 pt-4 border-top">
+                    <a asp-page="./Index" class="btn btn-light px-5 py-3 rounded-pill fw-bold border text-muted">Discard</a>
+                    <button type="submit" class="btn btn-save shadow-ultra">
+                        <i class="fa fa-save me-2"></i> @(Model.Company.IntCompanyId == 0 ? "Complete Registration" : "Update Profile")
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    @section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+        <script>
+            $(document).ready(function () {
+                // Live uppercase for compliance fields to match Regex requirements
+                $('#gstInput, #panInput').on('input', function() {
+                    $(this).val($(this).val().toUpperCase());
+                });
+
+                // Smooth scroll to first validation error on submit
+                $('#corporateForm').on('submit', function () {
+                    if (!$(this).valid()) {
+                        setTimeout(function() {
+                            $('html, body').animate({
+                                scrollTop: ($(".field-validation-error").first().offset().top - 150)
+                            }, 500);
+                        }, 50);
+                    }
+                });
+            });
+        </script>
+    }

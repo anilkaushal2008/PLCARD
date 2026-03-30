@@ -11,35 +11,33 @@ public partial class TblCorporatePlanMaster
 
     public string VchPlanName { get; set; }
 
-    public string VchTier { get; set; }
+    public decimal? DcOpdConsult { get; set; }
 
-    public float? FlOpdconsult { get; set; }
+    public decimal? DcOpdProcedure { get; set; }
 
-    public float? FlOpdproc { get; set; }
+    public decimal? DcRadiology { get; set; }
 
-    public float? FlIpd { get; set; }
+    public decimal? DcLab { get; set; }
 
-    public float? FlEmergencyTest { get; set; }
+    public decimal? DcPharmacy { get; set; }
 
-    public float? FlAmbulance { get; set; }
+    public decimal? DcHomecare { get; set; }
 
-    public float? FlDaycare { get; set; }
+    public decimal? DcIpd { get; set; }
 
-    public float? FlLab { get; set; }
-
-    public float? FlRadiology { get; set; }
-
-    public float? FlPetCt { get; set; }
-
-    public bool? BitWellnessCamp { get; set; }
-
-    public string VchExclusions { get; set; }
+    public decimal? DcAmbulance { get; set; }
 
     public DateTime? DtCreated { get; set; }
 
     public string VchCreatedBy { get; set; }
 
-    public int? FkBId { get; set; }
+    public DateTime? DtUpdated { get; set; }
 
-    public virtual ICollection<TblCompanyRegistration> TblCompanyRegistrations { get; set; } = new List<TblCompanyRegistration>();
+    public string VchUpdatedBy { get; set; }
+
+    public bool? BitActive { get; set; }
+
+    public bool? BitDeleted { get; set; }
+
+    public virtual ICollection<TblCompanyRegistration> TblCompanyRegistration { get; set; } = new List<TblCompanyRegistration>();
 }
