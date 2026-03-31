@@ -1,4 +1,5 @@
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.InkML;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -152,5 +153,21 @@ public class IssueModel(PLCARDContext context) : PageModel
         public string Pincode { get; set; } = ""; public string Uhid { get; set; } = "";
         public string Receipt { get; set; } = ""; public int Amount { get; set; }
         public string CardName { get; set; } = ""; public string RefBy { get; set; } = "";
+    }
+
+    public async Task AddToSyncQueue(string module, int recordId)
+    {
+        var servers = await context.TblServerRegistry.Where(x => x.BitIsActive==true).ToListAsync();
+        foreach (var server in servers)
+        {
+            context.TblSyncQueue.Add(new TblSyncQueue
+            {
+                IntServerId = server.IntServerId,
+                VchModule = module,
+                IntRecordId = recordId,
+                BitProcessed = false
+            });
+        }
+        await context.SaveChangesAsync();
     }
 }

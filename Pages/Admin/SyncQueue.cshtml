@@ -1,0 +1,142 @@
+﻿@page
+@model PLCARD.Pages.Admin.SyncQueueModel
+@{
+    ViewData["Title"] = "Sync Queue Monitor";
+}
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    .queue-card { 
+        border-radius: 20px; 
+        background: #ffffff; 
+        border: 1px solid rgba(241, 245, 249, 1); 
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); 
+    }
+    .dashboard-title { color: #1e293b; font-size: 1.75rem; }
+    
+    /* DataTables UI Overrides to match your theme */
+    .dataTables_wrapper .dataTables_filter input {
+        border-radius: 20px;
+        padding: 8px 15px;
+        border: 1px solid #e2e8f0;
+        margin-left: 10px;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background: #334155 !important;
+        color: white !important;
+        border-radius: 50%;
+        border: none;
+    }
+    .table thead th { background-color: #f8fafc; color: #64748b; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; }
+    
+    /* Badges */
+    .status-badge { font-size: 0.7rem; font-weight: 800; padding: 6px 14px; border-radius: 30px; text-transform: uppercase; display: inline-flex; align-items: center; }
+    .bg-pending { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+    .bg-processing { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .bg-failed { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+    .bg-success-light { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+    .module-badge { background-color: #334155 !important; color: #ffffff !important; font-weight: 700; padding: 5px 12px; border-radius: 6px; font-size: 0.75rem; }
+</style>
+
+<div class="container-fluid mt-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fw-bold dashboard-title mb-0">Sync Queue Monitor</h1>
+            <p class="text-muted mb-0">Manage and monitor cross-server data replication</p>
+        </div>
+        <div class="d-flex gap-2">
+            <form method="post" asp-page-handler="RetryFailed">
+                <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm">
+                    <i class="fas fa-sync-alt me-2"></i> Retry Failed
+                </button>
+            </form>
+            <form method="post" asp-page-handler="ClearProcessed">
+                <button type="submit" class="btn btn-outline-secondary rounded-pill px-4 fw-bold">
+                    <i class="fas fa-broom me-2"></i> Clear History
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card queue-card p-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="syncTable">
+                <thead>
+                    <tr>
+                        <th>Target Server</th>
+                        <th>Module</th>
+                        <th>Record ID</th>
+                        <th>Attempts</th>
+                        <th>Status</th>
+                        <th>Added On</th>
+                        <th>Error Log</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.SyncQueue)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-bold text-dark">@(item.IntServer?.VchServerName ?? "IIH Server")</div>
+                                <small class="text-muted">@(item.IntServer?.VchLocation ?? "Remote")</small>
+                            </td>
+                            <td>
+                                <span class="module-badge">@item.VchModule</span>
+                            </td>
+                            <td class="fw-bold text-primary">#@item.IntRecordId</td>
+                            <td>
+                                <small class="fw-bold">@item.IntRetryCount / 5</small>
+                            </td>
+                            <td>
+                                @if (item.BitProcessed == true) {
+                                    <span class="status-badge bg-success-light"><i class="fas fa-check-circle me-1"></i> Synced</span>
+                                } else if (item.IntRetryCount >= 5) {
+                                    <span class="status-badge bg-failed"><i class="fas fa-times-circle me-1"></i> Failed</span>
+                                } else {
+                                    <span class="status-badge bg-pending">Pending</span>
+                                }
+                            </td>
+                            <td data-order="@(item.DtAdded?.Ticks ?? 0)">
+                                <small class="text-muted">@item.DtAdded?.ToString("dd MMM, HH:mm")</small>
+                            </td>
+                            <td>
+                                <small class="text-danger text-truncate d-block" style="max-width: 150px;" title="@item.VchErrorLog">
+                                    @(item.VchErrorLog ?? "None")
+                                </small>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#syncTable').DataTable({
+                "pageLength": 10,        // Show 10 rows by default
+                "ordering": true,        // Enable sorting
+                "order": [[5, "desc"]],  // Default sort by "Added On" (column 5)
+                "language": {
+                    "search": "",        // Remove the "Search:" label
+                    "searchPlaceholder": "Search server, module or ID...",
+                    "paginate": {
+                        "next": '<i class="fas fa-chevron-right"></i>',
+                        "previous": '<i class="fas fa-chevron-left"></i>'
+                    }
+                },
+                "columnDefs": [
+                    { "orderable": false, "targets": [6] } // Disable sorting for Error Log
+                ]
+            });
+        });
+    </script>
+}

@@ -126,5 +126,6 @@ namespace PLCARD.Pages.Corporates
 
             PlanList = new SelectList(plans, "IntPlanId", "VchPlanName");
         }
+
     }
 }

@@ -3,8 +3,12 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - PLCARD</title>
+    <title>@ViewData["Title"] - IndusGroup</title>
     
+    @* 1. Favicon Link (Ensure your icon is in wwwroot/favicon.ico) *@
+    <link rel="shortcut icon" href="~/favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="~/favicon.ico" type="image/x-icon" />
+
     @* Core CSS *@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -15,41 +19,33 @@
 
     <style>
         :root {
-            --primary-dark: #2c3e50;
+            --primary-dark: #1e40af;
+            --brand-blue: #0d6efd;
         }
-        .navbar {
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
+        .navbar { box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
         .navbar-brand {
             font-weight: 800;
-            color: #0d6efd !important;
-            letter-spacing: 0.5px;
+            color: var(--brand-blue) !important;
+            letter-spacing: -0.5px;
+            font-size: 1.4rem;
         }
-        .nav-link {
-            font-weight: 500;
-            padding: 0.5rem 1rem !important;
-        }
-        .nav-link:hover {
-            color: #0d6efd !important;
-        }
-        .dropdown-menu {
-            border: none;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border-radius: 8px;
-        }
-        .dropdown-item {
-            padding: 0.6rem 1.2rem;
-            font-size: 0.95rem;
-        }
-        .dropdown-item i {
-            width: 25px;
-            color: #6c757d;
-        }
-        .dropdown-item:hover i {
-            color: #0d6efd;
-        }
-        footer {
-            background-color: #f8f9fa;
+        .nav-link { font-weight: 500; padding: 0.5rem 1rem !important; transition: 0.2s; }
+        .nav-link:hover { color: var(--brand-blue) !important; }
+        
+        .dropdown-menu { border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 12px; padding: 0.6rem; }
+        .dropdown-item { padding: 0.7rem 1.2rem; font-size: 0.9rem; border-radius: 8px; transition: 0.2s; }
+        .dropdown-item i { width: 25px; opacity: 0.7; }
+        .dropdown-item:hover { background-color: #f8f9fa; color: var(--brand-blue) !important; }
+
+        .admin-badge {
+            font-size: 0.65rem;
+            background: #eff6ff;
+            color: #1e40af;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            margin-left: 5px;
+            border: 1px solid #dbeafe;
         }
     </style>
 </head>
@@ -58,10 +54,9 @@
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom mb-3">
             <div class="container-fluid mx-md-4">
                 <a class="navbar-brand" asp-area="" asp-page="/Index">
-                    <i class="fa fa-hospital-user me-2"></i>PLCARD
+                    <i class="fa fa-shield-heart me-2"></i>IndusGroup
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 
@@ -69,65 +64,46 @@
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-page="/Index">
-                                <i class="fa fa-home me-1"></i> Home
+                                <i class="fa fa-house-chimney me-1 small"></i> Home
                             </a>
                         </li>
 
+                        @* Masters Menu *@
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-dark" href="#" id="masterDrop" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fa fa-database me-1"></i> Masters
+                            <a class="nav-link dropdown-toggle text-dark" href="#" id="masterDrop" role="button" data-bs-toggle="dropdown">
+                                <i class="fa fa-database me-1 small"></i> Masters
                             </a>
                             <ul class="dropdown-menu">
-                                <li>
-                                    <a class="dropdown-item" asp-page="/Masters/CardMaster/Index">
-                                        <i class="fa fa-id-card-clip"></i> Individual Card Master
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" asp-page="/Masters/PlanMaster/Index">
-                                        <i class="fa fa-building-user"></i> Corporate Plan Master
-                                    </a>
-                                </li>
+                                <li><a class="dropdown-item" asp-page="/Masters/CardMaster/Index"><i class="fa fa-id-card"></i> Card Master</a></li>
+                                <li><a class="dropdown-item" asp-page="/Masters/PlanMaster/Index"><i class="fa fa-building-circle-check"></i> Plan Master</a></li>
                             </ul>
                         </li>
 
+                        @* Corporate Module *@
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-dark" href="#" id="corpDrop" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fa fa-handshake me-1"></i> Corporate Module
+                            <a class="nav-link dropdown-toggle text-dark" href="#" id="corpDrop" role="button" data-bs-toggle="dropdown">
+                                <i class="fa fa-briefcase me-1 small"></i> Corporates
                             </a>
                             <ul class="dropdown-menu">
-                                <li>
-                                    <a class="dropdown-item" asp-page="/Corporates/Index">
-                                        <i class="fa fa-list-check"></i> View All Companies
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" asp-page="/Corporates/Register">
-                                        <i class="fa fa-plus-circle"></i> Register Company
-                                    </a>
-                                </li>
+                                <li><a class="dropdown-item" asp-page="/Corporates/Index"><i class="fa fa-list"></i> View Companies</a></li>
+                                <li><a class="dropdown-item" asp-page="/Corporates/Register"><i class="fa fa-plus-circle"></i> New Registration</a></li>
                             </ul>
                         </li>
 
+                        @* Global Admin Menu *@
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-dark" href="#" id="plDrop" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fa fa-address-card me-1"></i> PL Card Module
+                            <a class="nav-link dropdown-toggle text-dark" href="#" id="syncDrop" role="button" data-bs-toggle="dropdown">
+                                <i class="fa fa-globe me-1 text-primary"></i> Global Sync <span class="admin-badge">Admin</span>
                             </a>
-                            <ul class="dropdown-menu">
+                            <ul class="dropdown-menu shadow-lg border-0">
                                 <li>
-                                    <a class="dropdown-item" asp-page="/Cards/Issue">
-                                        <i class="fa fa-user-plus"></i> Issue New Card
+                                    <a class="dropdown-item" asp-page="/Admin/SyncCenter">
+                                        <i class="fa fa-server text-success"></i> Server Monitor
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" asp-page="/Cards/Index">
-                                        <i class="fa fa-folder-open"></i> Card Records
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" asp-page="/Reports/Monthly">
-                                        <i class="fa fa-chart-line text-primary"></i> Performance Report
+                                    <a class="dropdown-item" asp-page="/Admin/SyncQueue">
+                                        <i class="fa fa-arrow-right-arrow-left text-warning"></i> Replication Queue
                                     </a>
                                 </li>
                             </ul>
@@ -145,18 +121,15 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted mt-5">
-        <div class="container text-center py-3">
-            &copy; 2026 - <strong>PLCARD Management System</strong> | Indus Healthcare Group
+    <footer class="border-top footer text-muted mt-5 bg-white">
+        <div class="container text-center py-4">
+            &copy; 2026 - <strong>IndusGroup Management System</strong> | <span class="text-primary fw-bold">Indus Healthcare Group</span>
         </div>
     </footer>
 
-    @* Crucial Scripts *@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    @* Using bundle.min.js is mandatory for Bootstrap dropdowns to work *@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

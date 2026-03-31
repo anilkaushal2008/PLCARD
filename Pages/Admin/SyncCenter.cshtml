@@ -1,0 +1,223 @@
+﻿@page
+@model PLCARD.Pages.Admin.SyncCenterModel
+@{
+    ViewData["Title"] = "Server Health Monitor";
+}
+
+<style>
+    /* 1. Dashboard Typography */
+    .dashboard-title { font-size: 1.6rem; color: #1e293b; font-weight: 800; }
+    .text-muted-small { font-size: 0.85rem; letter-spacing: 0.2px; }
+
+    /* 2. Premium Glow Cards */
+    .stat-card { 
+        border-radius: 15px; 
+        border: none; 
+        padding: 25px; 
+        position: relative; 
+        overflow: hidden; 
+        color: white;
+        height: 140px;
+        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+    }
+    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.4); }
+
+    .bg-gradient-blue { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); }
+    .bg-gradient-green { background: linear-gradient(135deg, #065f46 0%, #10b981 100%); }
+    .bg-gradient-red { background: linear-gradient(135deg, #991b1b 0%, #ef4444 100%); }
+
+    .stat-icon {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 4.5rem;
+        opacity: 0.9;
+        filter: drop-shadow(0 0 15px rgba(255,255,255,0.4));
+    }
+    
+    .stat-content { margin-left: 90px; text-align: right; }
+    .stat-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; }
+    .stat-value { font-size: 3rem; font-weight: 800; line-height: 1; margin-top: 5px; }
+
+    /* 3. Modern Table with Primary Header & Deep Shadow */
+    .modern-table-container {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid rgba(238, 242, 246, 0.8);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.18), 
+                    0 10px 20px -5px rgba(0, 0, 0, 0.08);
+        margin-top: 30px;
+        overflow: hidden;
+    }
+
+    .table-modern thead th {
+        background-color: #0d6efd; /* Primary Blue Background */
+        color: #ffffff;           /* White Text */
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 18px 25px;
+        border: none;
+        letter-spacing: 1px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2); /* Makes text pop */
+    }
+
+    .table-modern td { 
+        padding: 18px 25px; 
+        font-size: 0.9rem; 
+        border-bottom: 1px solid #f1f5f9; 
+        color: #334155;
+    }
+
+    .table-modern tbody tr:last-child td { border-bottom: none; }
+    .table-modern tbody tr { transition: background 0.2s; }
+    .table-modern tbody tr:hover { background-color: #fcfdfe; }
+    
+    /* Pills & Tags */
+    .status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+    .dot-online { background-color: #10b981; box-shadow: 0 0 10px #10b981; }
+    .dot-offline { background-color: #ef4444; box-shadow: 0 0 10px #ef4444; }
+
+    .latency-tag {
+        font-weight: 700;
+        color: #475569;
+        background: #f1f5f9;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-family: 'Consolas', monospace;
+    }
+
+    .btn-reconnect {
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 7px 22px;
+        border: 1.5px solid #e2e8f0;
+        color: #475569;
+        background: white;
+        transition: all 0.2s;
+    }
+    .btn-reconnect:hover { 
+        background-color: #0d6efd; 
+        color: white; 
+        border-color: #0d6efd;
+        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.25);
+    }
+</style>
+
+<div class="container-fluid mt-4 px-4">
+    <div class="mb-4">
+        <h1 class="dashboard-title mb-0">Server Health Monitor</h1>
+        <p class="text-muted-small">Real-time infrastructure tracking for all online hospital hubs</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card stat-card bg-gradient-blue">
+                <i class="fa fa-database stat-icon"></i>
+                <div class="stat-content">
+                    <div class="stat-label">Total Registered Servers</div>
+                    <div class="stat-value">@Model.ServerStatuses.Count</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card bg-gradient-green">
+                <i class="fa fa-wifi stat-icon"></i>
+                <div class="stat-content">
+                    <div class="stat-label">Servers Online</div>
+                    <div class="stat-value">@Model.OnlineCount</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card bg-gradient-red">
+                <i class="fa fa-plug-circle-xmark stat-icon"></i>
+                <div class="stat-content">
+                    <div class="stat-label">Critical Failures</div>
+                    <div class="stat-value">@(Model.ServerStatuses.Count - Model.OnlineCount)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modern-table-container">
+        <table class="table table-modern align-middle mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-4">Hospital Branch</th>
+                    <th>Status</th>
+                    <th>Response Time</th>
+                    <th>Last Heartbeat</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var server in Model.ServerStatuses)
+                {
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-bold text-dark">@server.ServerName</div>
+                            <small class="text-muted">@server.Location</small>
+                        </td>
+                        <td class="status-cell">
+                            @if (server.IsOnline) {
+                                <span class="fw-bold text-success small"><span class="status-dot dot-online"></span> ONLINE</span>
+                            } else {
+                                <span class="fw-bold text-danger small"><span class="status-dot dot-offline"></span> OFFLINE</span>
+                            }
+                        </td>
+                        <td class="latency-cell">
+                            @if (server.IsOnline) {
+                                <span class="latency-tag">@(server.LatencyMs)ms</span>
+                            } else {
+                                <span class="text-muted">--</span>
+                            }
+                        </td>
+                        <td class="text-muted small">@server.LastCheck.ToString("HH:mm:ss")</td>
+                        <td class="text-end pe-4">
+                            <button type="button" class="btn btn-reconnect reconnect-btn" data-url="@server.ApiUrl">
+                                <i class="fa fa-bolt-lightning me-1"></i> Reconnect
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.reconnect-btn').click(function () {
+                var btn = $(this);
+                var url = btn.data('url');
+                var row = btn.closest('tr');
+                
+                btn.html('<i class="fa fa-spinner fa-spin me-1"></i> Checking').prop('disabled', true);
+
+                $.ajax({
+                    type: "POST",
+                    url: "?handler=Reconnect",
+                    data: { url: url },
+                    headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+                    success: function (response) {
+                        if (response.success) {
+                            row.find('.status-cell').html('<span class="fw-bold text-success small"><span class="status-dot dot-online"></span> ONLINE</span>');
+                            row.find('.latency-cell').html('<span class="latency-tag">' + response.latency + 'ms</span>');
+                        } else {
+                            row.find('.status-cell').html('<span class="fw-bold text-danger small"><span class="status-dot dot-offline"></span> OFFLINE</span>');
+                            row.find('.latency-cell').html('<span class="text-muted">--</span>');
+                        }
+                    },
+                    complete: function () {
+                        btn.html('<i class="fa fa-bolt-lightning me-1"></i> Reconnect').prop('disabled', false);
+                    }
+                });
+            });
+        });
+    </script>
+}

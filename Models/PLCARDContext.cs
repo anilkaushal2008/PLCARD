@@ -13,6 +13,18 @@ public partial class PLCARDContext : DbContext
     {
     }
 
+    public virtual DbSet<AspNetRoleClaims> AspNetRoleClaims { get; set; }
+
+    public virtual DbSet<AspNetRoles> AspNetRoles { get; set; }
+
+    public virtual DbSet<AspNetUserClaims> AspNetUserClaims { get; set; }
+
+    public virtual DbSet<AspNetUserLogins> AspNetUserLogins { get; set; }
+
+    public virtual DbSet<AspNetUserTokens> AspNetUserTokens { get; set; }
+
+    public virtual DbSet<AspNetUsers> AspNetUsers { get; set; }
+
     public virtual DbSet<TblCardMaster> TblCardMaster { get; set; }
 
     public virtual DbSet<TblCardRegistration> TblCardRegistration { get; set; }
@@ -21,9 +33,91 @@ public partial class PLCARDContext : DbContext
 
     public virtual DbSet<TblCorporatePlanMaster> TblCorporatePlanMaster { get; set; }
 
+    public virtual DbSet<TblGlobalSettings> TblGlobalSettings { get; set; }
+
+    public virtual DbSet<TblServerRegistry> TblServerRegistry { get; set; }
+
+    public virtual DbSet<TblSyncQueue> TblSyncQueue { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.UseCollation("SQL_1xCompat_CP850_CI_AS");
+
+        modelBuilder.Entity<AspNetRoleClaims>(entity =>
+        {
+            entity.HasIndex(e => e.RoleId, "IX_AspNetRoleClaims_RoleId");
+
+            entity.Property(e => e.RoleId).IsRequired();
+
+            entity.HasOne(d => d.Role).WithMany(p => p.AspNetRoleClaims).HasForeignKey(d => d.RoleId);
+        });
+
+        modelBuilder.Entity<AspNetRoles>(entity =>
+        {
+            entity.HasIndex(e => e.NormalizedName, "RoleNameIndex")
+                .IsUnique()
+                .HasFilter("([NormalizedName] IS NOT NULL)");
+
+            entity.Property(e => e.Name).HasMaxLength(256);
+            entity.Property(e => e.NormalizedName).HasMaxLength(256);
+        });
+
+        modelBuilder.Entity<AspNetUserClaims>(entity =>
+        {
+            entity.HasIndex(e => e.UserId, "IX_AspNetUserClaims_UserId");
+
+            entity.Property(e => e.UserId).IsRequired();
+
+            entity.HasOne(d => d.User).WithMany(p => p.AspNetUserClaims).HasForeignKey(d => d.UserId);
+        });
+
+        modelBuilder.Entity<AspNetUserLogins>(entity =>
+        {
+            entity.HasKey(e => new { e.LoginProvider, e.ProviderKey });
+
+            entity.HasIndex(e => e.UserId, "IX_AspNetUserLogins_UserId");
+
+            entity.Property(e => e.LoginProvider).HasMaxLength(128);
+            entity.Property(e => e.ProviderKey).HasMaxLength(128);
+            entity.Property(e => e.UserId).IsRequired();
+
+            entity.HasOne(d => d.User).WithMany(p => p.AspNetUserLogins).HasForeignKey(d => d.UserId);
+        });
+
+        modelBuilder.Entity<AspNetUserTokens>(entity =>
+        {
+            entity.HasKey(e => new { e.UserId, e.LoginProvider, e.Name });
+
+            entity.Property(e => e.LoginProvider).HasMaxLength(128);
+            entity.Property(e => e.Name).HasMaxLength(128);
+
+            entity.HasOne(d => d.User).WithMany(p => p.AspNetUserTokens).HasForeignKey(d => d.UserId);
+        });
+
+        modelBuilder.Entity<AspNetUsers>(entity =>
+        {
+            entity.HasIndex(e => e.NormalizedEmail, "EmailIndex");
+
+            entity.HasIndex(e => e.NormalizedUserName, "UserNameIndex")
+                .IsUnique()
+                .HasFilter("([NormalizedUserName] IS NOT NULL)");
+
+            entity.Property(e => e.Email).HasMaxLength(256);
+            entity.Property(e => e.NormalizedEmail).HasMaxLength(256);
+            entity.Property(e => e.NormalizedUserName).HasMaxLength(256);
+            entity.Property(e => e.UserName).HasMaxLength(256);
+
+            entity.HasMany(d => d.Role).WithMany(p => p.User)
+                .UsingEntity<Dictionary<string, object>>(
+                    "AspNetUserRoles",
+                    r => r.HasOne<AspNetRoles>().WithMany().HasForeignKey("RoleId"),
+                    l => l.HasOne<AspNetUsers>().WithMany().HasForeignKey("UserId"),
+                    j =>
+                    {
+                        j.HasKey("UserId", "RoleId");
+                        j.HasIndex(new[] { "RoleId" }, "IX_AspNetUserRoles_RoleId");
+                    });
+        });
 
         modelBuilder.Entity<TblCardMaster>(entity =>
         {
@@ -73,7 +167,7 @@ public partial class PLCARDContext : DbContext
         {
             entity.HasKey(e => e.IntRegId);
 
-            entity.ToTable("tblCardRegistration");
+            entity.ToTable("tblCardRegistration", tb => tb.HasTrigger("TR_Sync_CardRegistration"));
 
             entity.Property(e => e.IntRegId).HasColumnName("intRegID");
             entity.Property(e => e.Code).HasColumnName("code");
@@ -178,6 +272,8 @@ public partial class PLCARDContext : DbContext
         {
             entity.HasKey(e => e.IntCompanyId);
 
+            entity.ToTable(tb => tb.HasTrigger("trg_SyncCompanyToQueue"));
+
             entity.Property(e => e.BitActive).HasDefaultValue(true);
             entity.Property(e => e.DtAgreementEnd).HasColumnType("datetime");
             entity.Property(e => e.DtAgreementStart).HasColumnType("datetime");
@@ -273,6 +369,69 @@ public partial class PLCARDContext : DbContext
             entity.Property(e => e.VchUpdatedBy)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<TblGlobalSettings>(entity =>
+        {
+            entity.HasKey(e => e.IntSettingId).HasName("PK__TblGloba__B1E6D2309DCE642D");
+
+            entity.HasIndex(e => e.VchSettingKey, "UQ__TblGloba__F40814258359E342").IsUnique();
+
+            entity.Property(e => e.DtUpdated)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.VchDescription).HasMaxLength(255);
+            entity.Property(e => e.VchSettingKey).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<TblServerRegistry>(entity =>
+        {
+            entity.HasKey(e => e.IntServerId).HasName("PK__TblServe__8AF32E92AF5D43AD");
+
+            entity.Property(e => e.BitIsActive).HasDefaultValue(true);
+            entity.Property(e => e.DtCreated)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.DtLastCardSync).HasColumnType("datetime");
+            entity.Property(e => e.DtLastCorpSync).HasColumnType("datetime");
+            entity.Property(e => e.DtLastMasterSync).HasColumnType("datetime");
+            entity.Property(e => e.DtLastSync).HasColumnType("datetime");
+            entity.Property(e => e.VchApiKey)
+                .IsRequired()
+                .HasMaxLength(100);
+            entity.Property(e => e.VchApiUrl)
+                .IsRequired()
+                .HasMaxLength(255);
+            entity.Property(e => e.VchCreatedBy)
+                .HasMaxLength(50)
+                .HasDefaultValue("Admin");
+            entity.Property(e => e.VchLocation)
+                .IsRequired()
+                .HasMaxLength(100);
+            entity.Property(e => e.VchServerName)
+                .IsRequired()
+                .HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<TblSyncQueue>(entity =>
+        {
+            entity.HasKey(e => e.IntQueueId).HasName("PK__TblSyncQ__78869AF6D82396EA");
+
+            entity.HasIndex(e => new { e.IntServerId, e.BitProcessed }, "IX_SyncQueue_Pending").HasFilter("([BitProcessed]=(0))");
+
+            entity.Property(e => e.BitProcessed).HasDefaultValue(false);
+            entity.Property(e => e.DtAdded)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.IntRetryCount).HasDefaultValue(0);
+            entity.Property(e => e.VchModule)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            entity.HasOne(d => d.IntServer).WithMany(p => p.TblSyncQueue)
+                .HasForeignKey(d => d.IntServerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Queue_Server");
         });
 
         OnModelCreatingPartial(modelBuilder);
