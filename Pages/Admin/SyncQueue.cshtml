@@ -101,10 +101,15 @@
                             <td data-order="@(item.DtAdded?.Ticks ?? 0)">
                                 <small class="text-muted">@item.DtAdded?.ToString("dd MMM, HH:mm")</small>
                             </td>
-                            <td>
-                                <small class="text-danger text-truncate d-block" style="max-width: 150px;" title="@item.VchErrorLog">
-                                    @(item.VchErrorLog ?? "None")
-                                </small>
+                                                       <td>
+                                 @if (item.BitProcessed == true) 
+                                    {
+                                       <span class="text-muted">Cleared</span> 
+                                    }
+                                 else 
+                                    {
+                                      <span class="text-danger">@item.VchErrorLog</span>
+                                    }
                             </td>
                         </tr>
                     }

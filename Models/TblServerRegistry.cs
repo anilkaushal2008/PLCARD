@@ -31,5 +31,7 @@ public partial class TblServerRegistry
 
     public string VchCreatedBy { get; set; }
 
+    public string VchApihealth { get; set; }
+
     public virtual ICollection<TblSyncQueue> TblSyncQueue { get; set; } = new List<TblSyncQueue>();
 }

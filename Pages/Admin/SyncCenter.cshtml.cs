@@ -31,14 +31,14 @@ namespace PLCARD.Pages.Admin // <--- THIS MUST MATCH YOUR FOLDER PATH
                 {
                     ServerName = server.VchServerName,
                     Location = server.VchLocation,
-                    ApiUrl = server.VchApiUrl
+                    ApiUrl = server.VchApihealth
                 };
 
                 var stopwatch = Stopwatch.StartNew();
                 try
                 {
                     // Ping the base URL to check if the server is alive
-                    var response = await client.GetAsync(server.VchApiUrl);
+                    var response = await client.GetAsync(server.VchApihealth);
                     stopwatch.Stop();
 
                     status.IsOnline = response.IsSuccessStatusCode;

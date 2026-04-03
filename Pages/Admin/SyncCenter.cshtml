@@ -1,223 +1,286 @@
 ﻿@page
 @model PLCARD.Pages.Admin.SyncCenterModel
 @{
-    ViewData["Title"] = "Server Health Monitor";
+    ViewData["Title"] = "Network Intelligence Monitor";
 }
 
 <style>
-    /* 1. Dashboard Typography */
-    .dashboard-title { font-size: 1.6rem; color: #1e293b; font-weight: 800; }
-    .text-muted-small { font-size: 0.85rem; letter-spacing: 0.2px; }
+    /* 5. Heartbeat & Time Pulse Animations */
+    .heartbeat-icon {
+        color: #ef4444;
+        display: inline-block;
+        animation: heart-pulse 1.2s infinite; /* Mimics a resting heart rate */
+    }
 
-    /* 2. Premium Glow Cards */
-    .stat-card { 
-        border-radius: 15px; 
-        border: none; 
-        padding: 25px; 
-        position: relative; 
-        overflow: hidden; 
-        color: white;
-        height: 140px;
-        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+    .time-display-pulse {
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 800;
+        color: #0f172a;
         transition: all 0.3s ease;
     }
-    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.4); }
 
-    .bg-gradient-blue { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); }
-    .bg-gradient-green { background: linear-gradient(135deg, #065f46 0%, #10b981 100%); }
-    .bg-gradient-red { background: linear-gradient(135deg, #991b1b 0%, #ef4444 100%); }
-
-    .stat-icon {
-        position: absolute;
-        left: 20px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 4.5rem;
-        opacity: 0.9;
-        filter: drop-shadow(0 0 15px rgba(255,255,255,0.4));
+    /* The actual EKG heartbeat animation */
+    @@keyframes heart-pulse {
+        0% { transform: scale(1); }
+        14% { transform: scale(1.3); }
+        28% { transform: scale(1); }
+        42% { transform: scale(1.3); }
+        70% { transform: scale(1); }
     }
-    
-    .stat-content { margin-left: 90px; text-align: right; }
-    .stat-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; }
-    .stat-value { font-size: 3rem; font-weight: 800; line-height: 1; margin-top: 5px; }
 
-    /* 3. Modern Table with Primary Header & Deep Shadow */
-    .modern-table-container {
+    /* Soft glow for the time badge */
+    .heartbeat-badge {
         background: #ffffff;
-        border-radius: 16px;
-        border: 1px solid rgba(238, 242, 246, 0.8);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.18), 
-                    0 10px 20px -5px rgba(0, 0, 0, 0.08);
-        margin-top: 30px;
-        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 0 15px rgba(239, 68, 68, 0.1);
+        padding: 12px 24px !important;
+        transition: box-shadow 0.5s ease;
     }
 
-    .table-modern thead th {
-        background-color: #0d6efd; /* Primary Blue Background */
-        color: #ffffff;           /* White Text */
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        padding: 18px 25px;
-        border: none;
-        letter-spacing: 1px;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.2); /* Makes text pop */
+    .heartbeat-badge:hover {
+        box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
     }
 
-    .table-modern td { 
-        padding: 18px 25px; 
-        font-size: 0.9rem; 
-        border-bottom: 1px solid #f1f5f9; 
-        color: #334155;
-    }
 
-    .table-modern tbody tr:last-child td { border-bottom: none; }
-    .table-modern tbody tr { transition: background 0.2s; }
-    .table-modern tbody tr:hover { background-color: #fcfdfe; }
+    /* 1. Global Dashboard Foundation */
+    body { background: #f1f5f9; font-family: 'Inter', system-ui, -apple-system, sans-serif; overflow-x: hidden; }
     
-    /* Pills & Tags */
-    .status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
-    .dot-online { background-color: #10b981; box-shadow: 0 0 10px #10b981; }
-    .dot-offline { background-color: #ef4444; box-shadow: 0 0 10px #ef4444; }
+    /* True Full-Width Wrapper with bottom gap */
+    .dashboard-wrapper { width: 100%; padding: 0 40px; margin-top: 30px; margin-bottom: 150px; }
 
-    .latency-tag {
-        font-weight: 700;
-        color: #475569;
-        background: #f1f5f9;
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-family: 'Consolas', monospace;
+    /* 2. Compact Modern Stat Cards */
+    .stat-card-mini {
+        border-radius: 20px;
+        border: none;
+        padding: 20px 25px;
+        color: white;
+        height: 110px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     }
+    .stat-card-mini:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
 
-    .btn-reconnect {
-        border-radius: 30px;
+    .bg-indigo-modern { background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 100%); }
+    .bg-emerald-modern { background: linear-gradient(135deg, #064e3b 0%, #10b981 100%); }
+    .bg-rose-modern { background: linear-gradient(135deg, #881337 0%, #f43f5e 100%); }
+
+    .mini-icon { position: absolute; right: -10px; bottom: -10px; font-size: 4.5rem; opacity: 0.12; transform: rotate(-15deg); }
+    .mini-label { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.8; margin-bottom: 4px; }
+    .mini-value { font-size: 2.5rem; font-weight: 900; line-height: 1; }
+
+    /* 3. Floating Node Rows */
+    .node-row-container { margin-top: 40px; }
+    
+    .node-row-item {
+        background: #ffffff;
+        border-radius: 18px;
+        padding: 22px 30px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        border: 1px solid rgba(226, 232, 240, 0.6);
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .node-row-item:hover { transform: scale(1.005); border-color: #3b82f6; box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
+
+    /* 4. Status UI & Telemetry */
+    .status-pill {
+        padding: 8px 18px;
+        border-radius: 100px;
         font-size: 0.75rem;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        letter-spacing: 0.5px;
+    }
+    .status-online { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .status-offline { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+
+    .latency-mono {
+        font-family: 'JetBrains Mono', 'Consolas', monospace;
+        font-weight: 800;
+        font-size: 0.9rem;
+        color: #0f172a;
+        background: #f8fafc;
+        padding: 6px 14px;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .btn-sync {
+        background: #0f172a;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 12px 24px;
+        font-size: 0.85rem;
         font-weight: 700;
-        padding: 7px 22px;
-        border: 1.5px solid #e2e8f0;
-        color: #475569;
-        background: white;
-        transition: all 0.2s;
+        transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
-    .btn-reconnect:hover { 
-        background-color: #0d6efd; 
-        color: white; 
-        border-color: #0d6efd;
-        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.25);
-    }
+    .btn-sync:hover { background: #334155; transform: scale(1.05); box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2); }
+
+    /* Live pulse animation */
+    .live-pulse-dot { width: 10px; height: 10px; background: #f43f5e; border-radius: 50%; display: inline-block; animation: pulse-red 2s infinite; }
+    @@keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7); } 70% { box-shadow: 0 0 0 12px rgba(244, 63, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); } }
 </style>
 
-<div class="container-fluid mt-4 px-4">
-    <div class="mb-4">
-        <h1 class="dashboard-title mb-0">Server Health Monitor</h1>
-        <p class="text-muted-small">Real-time infrastructure tracking for all online hospital hubs</p>
-    </div>
+<div class="dashboard-wrapper">
+<div class="d-flex justify-content-between align-items-end mb-5 px-2">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="live-pulse-dot"></span>
+                <span class="fw-bold text-danger text-uppercase" style="font-size: 0.7rem; letter-spacing: 1.5px;">IndusGroup Network Live</span>
+            </div>
+            <h1 class="fw-black mb-0" style="font-weight: 900; letter-spacing: -1.5px; font-size: 2.8rem; color: #0f172a;">Node Intelligence</h1>
+            <p class="text-muted mb-0 mt-1">Real-time health telemetry across the global synchronization backbone</p>
+        </div>
 
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="card stat-card bg-gradient-blue">
-                <i class="fa fa-database stat-icon"></i>
-                <div class="stat-content">
-                    <div class="stat-label">Total Registered Servers</div>
-                    <div class="stat-value">@Model.ServerStatuses.Count</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card stat-card bg-gradient-green">
-                <i class="fa fa-wifi stat-icon"></i>
-                <div class="stat-content">
-                    <div class="stat-label">Servers Online</div>
-                    <div class="stat-value">@Model.OnlineCount</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card stat-card bg-gradient-red">
-                <i class="fa fa-plug-circle-xmark stat-icon"></i>
-                <div class="stat-content">
-                    <div class="stat-label">Critical Failures</div>
-                    <div class="stat-value">@(Model.ServerStatuses.Count - Model.OnlineCount)</div>
-                </div>
+        <div class="text-end">
+            <div class="text-muted small fw-bold text-uppercase mb-2" style="letter-spacing: 1px;">System Heartbeat</div>
+            <div class="badge heartbeat-badge rounded-pill shadow-sm">
+                <i class="fa fa-heartbeat heartbeat-icon me-2"></i>
+                <span class="time-display-pulse" id="liveClock">
+                    @DateTime.Now.ToString("HH:mm:ss")
+                </span>
             </div>
         </div>
     </div>
 
-    <div class="modern-table-container">
-        <table class="table table-modern align-middle mb-0">
-            <thead>
-                <tr>
-                    <th class="ps-4">Hospital Branch</th>
-                    <th>Status</th>
-                    <th>Response Time</th>
-                    <th>Last Heartbeat</th>
-                    <th class="text-end pe-4">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var server in Model.ServerStatuses)
-                {
-                    <tr>
-                        <td class="ps-4">
-                            <div class="fw-bold text-dark">@server.ServerName</div>
-                            <small class="text-muted">@server.Location</small>
-                        </td>
-                        <td class="status-cell">
-                            @if (server.IsOnline) {
-                                <span class="fw-bold text-success small"><span class="status-dot dot-online"></span> ONLINE</span>
-                            } else {
-                                <span class="fw-bold text-danger small"><span class="status-dot dot-offline"></span> OFFLINE</span>
-                            }
-                        </td>
-                        <td class="latency-cell">
-                            @if (server.IsOnline) {
-                                <span class="latency-tag">@(server.LatencyMs)ms</span>
-                            } else {
-                                <span class="text-muted">--</span>
-                            }
-                        </td>
-                        <td class="text-muted small">@server.LastCheck.ToString("HH:mm:ss")</td>
-                        <td class="text-end pe-4">
-                            <button type="button" class="btn btn-reconnect reconnect-btn" data-url="@server.ApiUrl">
-                                <i class="fa fa-bolt-lightning me-1"></i> Reconnect
-                            </button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="stat-card-mini bg-indigo-modern">
+                <i class="fa fa-server mini-icon"></i>
+                <div class="mini-label">Configured Nodes</div>
+                <div class="mini-value">@Model.ServerStatuses.Count</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card-mini bg-emerald-modern">
+                <i class="fa fa-circle-check mini-icon"></i>
+                <div class="mini-label">Healthy Status</div>
+                <div class="mini-value">@Model.OnlineCount</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card-mini bg-rose-modern">
+                <i class="fa fa-radiation mini-icon"></i>
+                <div class="mini-label">Critical Faults</div>
+                <div class="mini-value">@(Model.ServerStatuses.Count - Model.OnlineCount)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-none d-lg-flex px-5 py-3 text-muted fw-bold small text-uppercase" style="letter-spacing: 2px; font-size: 0.65rem;">
+        <div class="col-lg-4">Infrastructure Hub</div>
+        <div class="col-lg-2 text-center">Connection</div>
+        <div class="col-lg-2 text-center">Latency</div>
+        <div class="col-lg-2 text-center">Last Pulse</div>
+        <div class="col-lg-2 text-end">Control</div>
+    </div>
+
+    <div class="node-row-container">
+        @foreach (var server in Model.ServerStatuses)
+        {
+            <div class="node-row-item">
+                <div class="col-lg-4 col-12 d-flex align-items-center">
+                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-4 text-primary shadow-sm">
+                        <i class="fa fa-h-square h3 mb-0"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-dark h4 mb-0" style="letter-spacing: -0.5px;">@server.ServerName</div>
+                        <div class="text-muted small fw-medium mt-1"><i class="fa fa-map-marker-alt me-1 text-danger"></i> @server.Location</div>
+                    </div>
+                </div>
+
+                <div class="col-lg-2 col-6 text-center status-cell">
+                    @if (server.IsOnline) {
+                        <div class="status-pill status-online"><i class="fa fa-circle-check"></i> CONNECTED</div>
+                    } else {
+                        <div class="status-pill status-offline"><i class="fa fa-warning"></i> DISCONNECTED</div>
+                    }
+                </div>
+
+                <div class="col-lg-2 col-6 text-center latency-cell">
+                    @if (server.IsOnline) {
+                        <span class="latency-mono">@(server.LatencyMs)ms</span>
+                    } else {
+                        <span class="text-muted opacity-50">---</span>
+                    }
+                </div>
+
+                <div class="col-lg-2 d-none d-lg-block text-center">
+                    <div class="text-dark fw-bold" style="font-size: 0.9rem;">@server.LastCheck.ToString("HH:mm:ss")</div>
+                    <div class="text-muted" style="font-size: 0.6rem; text-transform: uppercase;">Sync Time</div>
+                </div>
+
+                <div class="col-lg-2 col-12 text-end mt-3 mt-lg-0">
+                    <button class="btn-sync reconnect-btn ms-auto" data-url="@server.ApiUrl">
+                        <i class="fa fa-refresh"></i> Re-Sync Node
+                    </button>
+                </div>
+            </div>
+        }
     </div>
 </div>
 
 @section Scripts {
     <script>
         $(document).ready(function () {
+            // Re-Sync Logic
             $('.reconnect-btn').click(function () {
                 var btn = $(this);
-                var url = btn.data('url');
-                var row = btn.closest('tr');
+                var row = btn.closest('.node-row-item');
                 
-                btn.html('<i class="fa fa-spinner fa-spin me-1"></i> Checking').prop('disabled', true);
+                btn.html('<i class="fa fa-spinner fa-spin"></i> Tracing...').prop('disabled', true);
 
                 $.ajax({
                     type: "POST",
                     url: "?handler=Reconnect",
-                    data: { url: url },
+                    data: { url: btn.data('url') },
                     headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
                     success: function (response) {
                         if (response.success) {
-                            row.find('.status-cell').html('<span class="fw-bold text-success small"><span class="status-dot dot-online"></span> ONLINE</span>');
-                            row.find('.latency-cell').html('<span class="latency-tag">' + response.latency + 'ms</span>');
+                            row.find('.status-cell').html('<div class="status-pill status-online"><i class="fa fa-circle-check"></i> CONNECTED</div>');
+                            row.find('.latency-cell').html('<span class="latency-mono">' + response.latency + 'ms</span>');
                         } else {
-                            row.find('.status-cell').html('<span class="fw-bold text-danger small"><span class="status-dot dot-offline"></span> OFFLINE</span>');
-                            row.find('.latency-cell').html('<span class="text-muted">--</span>');
+                            row.find('.status-cell').html('<div class="status-pill status-offline"><i class="fa fa-warning"></i> DISCONNECTED</div>');
+                            row.find('.latency-cell').html('<span class="text-muted">---</span>');
                         }
                     },
                     complete: function () {
-                        btn.html('<i class="fa fa-bolt-lightning me-1"></i> Reconnect').prop('disabled', false);
+                        btn.html('<i class="fa fa-refresh"></i> Re-Sync Node').prop('disabled', false);
                     }
                 });
             });
+
+            // 60-Second Auto Refresh for Live Telemetry
+            setInterval(function() {
+                console.log("Telemetry Refresh Triggered...");
+                location.reload();
+            }, 60000);
         });
+        // Update the live clock every second with a heartbeat effect
+    function updateClock() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        
+        const timeString = `${hours}:${minutes}:${seconds}`;
+        $('#liveClock').text(timeString);
+    }
+
+    // Call it every 1 second
+    setInterval(updateClock, 1000);
     </script>
 }

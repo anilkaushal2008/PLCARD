@@ -5,26 +5,32 @@ namespace PLCARD.Models.DTOs
 {
     public class ComapnySyncDTO
     {
-        [JsonIgnore] // Not needed in the incoming JSON request
-        public int? Status { get; set; }
-
-        [JsonIgnore] // Not needed in the incoming JSON request
-        public string? Message { get; set; }
-
         public int IntCompanyId { get; set; }
 
         [Required]
+        [StringLength(200)]
         public string VchCompanyName { get; set; } = null!;
 
         public int? IntPlanId { get; set; }
+
+        [StringLength(100)]
         public string? VchContactPerson { get; set; }
+
+        [StringLength(20)] // Must match API's increased length
         public string? VchContactNo { get; set; }
+
+        [StringLength(100)]
         public string? VchEmail { get; set; }
+
+        [StringLength(20)] // Must match API's increased length
         public string? VchGstNo { get; set; }
+
+        [StringLength(20)]
         public string? VchPanNo { get; set; }
+
+        [StringLength(10)]
         public string? VchPincode { get; set; }
 
-        // EF Core requires this property if SQL returns it
         public DateTime? DtRegistration { get; set; }
     }
 }

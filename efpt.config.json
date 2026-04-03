@@ -55,6 +55,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[tblCardRegistration_old]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[TblCompanyRegistration]",
          "ObjectType": 0
       },
