@@ -1,80 +1,275 @@
 @page
 @model IndexModel
 @{
-    ViewData["Title"] = "PLCARD Dashboard";
+    ViewData["Title"] = "PLCARD Analytics Dashboard";
 }
 
-<div class="container mt-4">
-    <div class="row mb-5 justify-content-center">
-        <div class="col-md-8 text-center">
-            <h4 class="mb-3 text-muted">Quick UHID Verification</h4>
-            <form method="post" asp-page-handler="Search" class="input-group input-group-lg shadow-sm">
-                <input type="text" name="uhid" class="form-control border-primary" placeholder="Enter Patient UHID (e.g. 10025)..." required>
-                <button class="btn btn-primary px-4" type="submit">
-                    <i class="fa fa-search"></i> Verify Card
+<style>
+    :root {
+        --indus-blue: #0d6efd;
+        --indus-gradient: linear-gradient(135deg, #0d6efd 0%, #003366 100%);
+        --glass-bg: rgba(255, 255, 255, 0.95);
+    }
+
+    body { background-color: #f4f7f6; font-family: 'Inter', sans-serif; }
+
+    .glass-card {
+    background: var(--glass-bg);
+    border: none;
+    border-radius: 1.25rem;
+    /* Increased opacity from 0.08 to 0.12 and spread for more depth */
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12); 
+    transition: all 0.3s ease;
+}
+
+.glass-card:hover { 
+    transform: translateY(-10px); 
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15); 
+}
+
+    .kpi-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .bg-soft-primary { background-color: #e7f1ff; color: #0d6efd; }
+    .bg-soft-success { background-color: #e8fadf; color: #28a745; }
+    .bg-soft-info { background-color: #e1f5fe; color: #03a9f4; }
+    .bg-soft-warning { background-color: #fff3e0; color: #ff9800; }
+
+    .table thead th {
+        background-color: #f8f9fa;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        border: none;
+    }
+    
+    .search-bar {
+        border-radius: 50px;
+        padding-left: 20px;
+        border: 1px solid #dee2e6;
+    }
+</style>
+
+<div class="container-fluid py-4 px-lg-5">
+    <div class="row align-items-center mb-4">
+        <div class="col-md-6">
+            <h3 class="fw-bold text-dark mb-1">Welcome, @User.Identity?.Name!</h3>
+            <p class="text-muted" style="font-style:italic">Indus Healthcare | Privilege Management Command Center</p>
+        </div>
+        <div class="col-md-6">
+            <form method="post" asp-page-handler="Search" class="d-flex shadow-sm rounded-pill bg-white">
+                <input type="text" name="uhid" class="form-control border-0 search-bar" placeholder="Enter UHID to verify member..." required>
+                <button class="btn btn-primary rounded-pill px-4" type="submit">
+                    <i class="fa fa-search me-2"></i>Verify
                 </button>
             </form>
             @if (TempData["SearchError"] != null)
             {
-                <div class="text-danger mt-2 fw-bold animate__animated animate__shakeX">
-                    <i class="fa fa-exclamation-circle"></i> @TempData["SearchError"]
+                <div class="text-danger small mt-2 ms-3 animate__animated animate__headShake">
+                    <i class="fa fa-times-circle"></i> @TempData["SearchError"]
                 </div>
             }
         </div>
     </div>
 
-    <div class="row g-4">
-    </div>
-</div>
-
-@if (Model.SearchResult != null)
-{
-    <div class="modal fade" id="resultModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title"><i class="fa fa-check-circle me-2"></i> Card Verified!</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <div class="text-center mb-4">
-                        <div class="display-6 fw-bold text-success">@Model.SearchResult.VchCardType</div>
-                        <span class="badge bg-light text-dark border">Privilege Card Member</span>
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card glass-card p-3">
+                <div class="d-flex align-items-center">
+                    <div class="kpi-icon bg-soft-primary me-3 shadow-sm"><i class="fa fa-building"></i></div>
+                    <div>
+                        <small class="text-muted fw-bold text-uppercase">Companies</small>
+                        <h3 class="mb-0 fw-bold">@Model.TotalCompanies</h3>
                     </div>
-                    
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between">
-                            <span class="text-muted">Patient Name:</span>
-                            <span class="fw-bold">@Model.SearchResult.Vchname</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between">
-                            <span class="text-muted">UHID Number:</span>
-                            <span class="fw-bold">@Model.SearchResult.VchUhidno</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between">
-                            <span class="text-muted">Valid Since:</span>
-                            <span>@Model.SearchResult.Dtcreated?.ToString("dd MMM yyyy")</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between">
-                            <span class="text-muted">Contact:</span>
-                            <span>@Model.SearchResult.Vchcontactno</span>
-                        </li>
-                    </ul>
                 </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card glass-card p-3">
+                <div class="d-flex align-items-center">
+                    <div class="kpi-icon bg-soft-success me-3 shadow-sm"><i class="fa fa-id-card"></i></div>
+                    <div>
+                        <small class="text-muted fw-bold text-uppercase">Total Cards</small>
+                        <h3 class="mb-0 fw-bold">@Model.TotalCardsIssued</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card glass-card p-3">
+                <div class="d-flex align-items-center">
+                    <div class="kpi-icon bg-soft-info me-3 shadow-sm"><i class="fa fa-calendar-check"></i></div>
+                    <div>
+                        <small class="text-muted fw-bold text-uppercase">Issued Today</small>
+                        <h3 class="mb-0 fw-bold">@Model.CardsIssuedToday</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card glass-card p-3">
+                <div class="d-flex align-items-center">
+                    <div class="kpi-icon bg-soft-warning me-3 shadow-sm"><i class="fa fa-sync"></i></div>
+                    <div>
+                        <small class="text-muted fw-bold text-uppercase">Pending Sync</small>
+                        <h3 class="mb-0 fw-bold">@Model.PendingSyncCount</h3>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-}
+
+   <div class="row g-4 mb-5">
+     <div class="col-lg-8">
+         <div class="card glass-card h-100">
+             <div class="card-body p-4">
+                 <h5 class="fw-bold mb-4">Company Registration Trend (2026)</h5>
+                 <div style="position: relative; height: 300px;">
+                     <canvas id="registrationChart"></canvas>
+                 </div>
+             </div>
+         </div>
+     </div>
+
+     <div class="col-lg-4">
+         <div class="card glass-card h-100">
+             <div class="card-body p-4 text-center">
+                 <h5 class="fw-bold mb-4">Patient Card Type Mix</h5>
+                 <div style="position: relative; height: 300px;">
+                     <canvas id="cardTypeChart"></canvas>
+                 </div>
+             </div>
+         </div>
+     </div>
+ </div>
+
+    <div class="card glass-card mb-5">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center rounded-top">
+            <h5 class="fw-bold mb-0 ps-2">Recent Company Registrations</h5>
+            <a href="/Admin/Companies" class="btn btn-link text-decoration-none fw-bold">View All <i class="fa fa-arrow-right small"></i></a>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="px-4">Company Name</th>
+                        <th>Contact Person</th>
+                        <th>Location/Pin</th>
+                        <th>Registered Date</th>
+                        <th class="text-end px-4">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var company in Model.RecentCompanies)
+                    {
+                        <tr>
+                            <td class="px-4 fw-bold text-primary">@company.VchCompanyName</td>
+                            <td>@company.VchContactPerson</td>
+                            <td><span class="badge bg-light text-dark fw-normal border">@company.VchPincode</span></td>
+                            <td>@company.DtRegistration?.ToString("dd MMM yyyy")</td>
+                            <td class="text-end px-4">
+                                <span class="badge rounded-pill bg-soft-success px-3">Active</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Automatically show the modal if a result exists
+        // 1. Connect C# data to JS variables
+        const registrationData = @Html.Raw(Json.Serialize(Model.MonthlyRegistrationData));
+        const cardTierData = @Html.Raw(Json.Serialize(Model.CardTypeDistribution));
+
+        // 2. Registration Bar Chart
+        const regCtx = document.getElementById('registrationChart');
+        if (regCtx) {
+            new Chart(regCtx.getContext('2d'), {
+                type: 'bar', 
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'New Registrations',
+                        data: registrationData,
+                        backgroundColor: 'rgba(13, 110, 253, 0.85)',
+                        borderRadius: 6, 
+                        hoverBackgroundColor: '#003366',
+                        maxBarThickness: 35
+                    }]
+                },
+                options: { 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            max: 15, 
+                            grid: { drawBorder: false, color: 'rgba(0, 0, 0, 0.03)', borderDash: [5, 5] },
+                            ticks: { stepSize: 2, color: '#adb5bd' }
+                        },
+                        x: { grid: { display: false }, ticks: { color: '#adb5bd' } }
+                    }
+                }
+            });
+        }
+
+        // 3. Card Type Doughnut Chart with Metallic Colors
+        const typeCtx = document.getElementById('cardTypeChart');
+        if (typeCtx) {
+            new Chart(typeCtx.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Platinum', 'Gold', 'Silver'],
+                    datasets: [{
+                        data: cardTierData,
+                        backgroundColor: [
+                            '#546E7A', // Deep Platinum
+                            '#FFD700', // Metallic Gold
+                            '#B0BEC5'  // Soft Silver
+                        ],
+                        hoverBackgroundColor: [
+                            '#37474F', 
+                            '#FBC02D', 
+                            '#90A4AE'  
+                        ],
+                        hoverOffset: 15,
+                        borderWidth: 0,
+                        spacing: 5 
+                    }]
+                },
+                options: { 
+                    cutout: '75%', 
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { 
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: { family: "'Inter', sans-serif", size: 12 }
+                            }
+                        } 
+                    } 
+                }
+            });
+        } // <--- Added missing closing brace for 'if (typeCtx)'
+
+        // 4. Auto-show Verification Modal
         $(document).ready(function () {
-            var myModal = new bootstrap.Modal(document.getElementById('resultModal'));
-            if (myModal) {
+            var myModalEl = document.getElementById('resultModal');
+            if (myModalEl) {
+                var myModal = new bootstrap.Modal(myModalEl);
                 myModal.show();
             }
         });
