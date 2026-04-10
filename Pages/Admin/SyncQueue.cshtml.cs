@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using PLCARD.Data;
 using PLCARD.Models;
 
 namespace PLCARD.Pages.Admin
@@ -15,21 +14,16 @@ namespace PLCARD.Pages.Admin
             _context = context;
         }
 
-        // --- THE HTML NEEDS THESE EXACT NAMES ---
         public List<TblSyncQueue> SyncQueue { get; set; } = new();
-        public int PendingCount { get; set; }
-        public int FailedCount { get; set; }
 
         public async Task OnGetAsync()
         {
+            // FIX 1: Change 'Include(q => q.IntServerId)' to 'Include(q => q.IntServer)'
+            // This pulls the actual ServerMaster object into the queue items.
             SyncQueue = await _context.TblSyncQueue
-                .Include(q => q.IntServer) // Requires the Navigation Property we added
+                .Include(q => q.IntServer)
                 .OrderByDescending(q => q.DtAdded)
-                .Take(100)
                 .ToListAsync();
-
-            PendingCount = await _context.TblSyncQueue.CountAsync(q => q.BitProcessed != true);
-            FailedCount = await _context.TblSyncQueue.CountAsync(q => q.IntRetryCount >= 5 && q.BitProcessed != true);
         }
 
         public async Task<IActionResult> OnPostRetryFailedAsync()
@@ -41,6 +35,7 @@ namespace PLCARD.Pages.Admin
             foreach (var item in failedItems)
             {
                 item.IntRetryCount = 0;
+                item.VchErrorLog = "Retrying..."; // Clear the error log for the next attempt
             }
 
             await _context.SaveChangesAsync();

@@ -15,14 +15,18 @@ namespace PLCARD.Services
 
         public async Task AddToSyncQueue(string module, int recordId)
         {
-            var servers = await _context.TblServerRegistry
-                .Where(x => x.BitIsActive==true)
+            // NEW: Reference the new 'ServerMaster' table instead of the deleted registry
+            var servers = await _context.ServerMaster
+                .Where(x => x.BitIsActive == true)
                 .ToListAsync();
+
+            if (!servers.Any()) return;
 
             foreach (var server in servers)
             {
                 _context.TblSyncQueue.Add(new TblSyncQueue
                 {
+                    // IntServerId matches the Foreign Key to ServerMaster
                     IntServerId = server.IntServerId,
                     VchModule = module,
                     IntRecordId = recordId,
@@ -31,6 +35,7 @@ namespace PLCARD.Services
                     IntRetryCount = 0
                 });
             }
+
             await _context.SaveChangesAsync();
         }
     }

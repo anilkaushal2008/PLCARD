@@ -5,273 +5,232 @@
 }
 
 <style>
-    :root {
-        --indus-blue: #0d6efd;
-        --indus-gradient: linear-gradient(135deg, #0d6efd 0%, #003366 100%);
-        --glass-bg: rgba(255, 255, 255, 0.95);
+    /* 1. Isolation to protect Layout Header */
+    #dashboard-wrapper {
+        --primary: #4361ee;
+        --text-main: #2b3674;
+        --text-muted: #a3aed0;
+        background-color: #f4f7fe; 
+        min-height: 100vh;
+        padding: 30px 0;
+        font-family: 'Inter', sans-serif;
     }
 
-    body { background-color: #f4f7f6; font-family: 'Inter', sans-serif; }
+    /* 2. Deep "Stunning" Shadows for Cards */
+    .kpi-card, .glass-card {
+        background: #ffffff !important;
+        border: none !important;
+        border-radius: 20px !important;
+        /* Multi-layered shadow: one for depth, one for soft glow */
+        box-shadow: 0 20px 27px 0 rgba(0, 0, 0, 0.05), 0 5px 15px 0 rgba(0, 0, 0, 0.08) !important;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
 
-    .glass-card {
-    background: var(--glass-bg);
-    border: none;
-    border-radius: 1.25rem;
-    /* Increased opacity from 0.08 to 0.12 and spread for more depth */
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12); 
-    transition: all 0.3s ease;
-}
+    .kpi-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 30px 60px -12px rgba(50, 50, 93, 0.25), 0 18px 36px -18px rgba(0, 0, 0, 0.3) !important;
+    }
 
-.glass-card:hover { 
-    transform: translateY(-10px); 
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15); 
-}
+    /* 3. Search Bar */
+    .verify-pill-container {
+        background: #ffffff;
+        border-radius: 50px;
+        padding: 8px 8px 8px 24px;
+        box-shadow: 0 10px 25px rgba(67, 97, 238, 0.12);
+        display: flex;
+        align-items: center;
+        border: 2px solid transparent;
+    }
+    .verify-pill-container:focus-within { border-color: var(--primary); }
+    .verify-pill-container input { border: none !important; outline: none !important; background: transparent; width: 100%; font-weight: 500; }
 
-    .kpi-icon {
-        width: 50px;
-        height: 50px;
-        border-radius: 12px;
+    /* 4. Icon Boxes */
+    .kpi-icon-box {
+        width: 58px;
+        height: 58px;
+        border-radius: 18px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.5rem;
+        font-size: 1.4rem;
+        margin-right: 20px;
     }
 
-    .bg-soft-primary { background-color: #e7f1ff; color: #0d6efd; }
-    .bg-soft-success { background-color: #e8fadf; color: #28a745; }
-    .bg-soft-info { background-color: #e1f5fe; color: #03a9f4; }
-    .bg-soft-warning { background-color: #fff3e0; color: #ff9800; }
+    .bg-light-blue { background: #e9edf7; color: #4361ee; }
+    .bg-light-purple { background: #f4f2ff; color: #7047ee; }
+    .bg-light-green { background: #e6faf5; color: #05cd99; }
+    .bg-light-cyan { background: #e0f7fa; color: #00bcd4; }
+    .bg-light-orange { background: #fef5ee; color: #ff9920; }
 
-    .table thead th {
-        background-color: #f8f9fa;
-        text-transform: uppercase;
-        font-size: 0.75rem;
-        letter-spacing: 1px;
-        border: none;
-    }
-    
-    .search-bar {
-        border-radius: 50px;
-        padding-left: 20px;
-        border: 1px solid #dee2e6;
-    }
+    .kpi-label { font-size: 0.78rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+    .kpi-number { font-size: 1.8rem; font-weight: 800; color: var(--text-main); line-height: 1.2; }
 </style>
 
-<div class="container-fluid py-4 px-lg-5">
-    <div class="row align-items-center mb-4">
-        <div class="col-md-6">
-            <h3 class="fw-bold text-dark mb-1">Welcome, @User.Identity?.Name!</h3>
-            <p class="text-muted" style="font-style:italic">Indus Healthcare | Privilege Management Command Center</p>
+<div id="dashboard-wrapper">
+    <div class="container-fluid px-lg-5">
+        
+        <div class="row align-items-center mb-5">
+            <div class="col-md-7">
+                <h2 class="fw-bold text-dark mb-1" style="font-weight: 800;">Welcome back, admin!</h2>
+                <p class="text-muted fw-500 mb-0">Indus Healthcare | Command Center Dashboard</p>
+            </div>
+            <div class="col-md-5">
+                <form method="post" asp-page-handler="Search" class="verify-pill-container">
+                    <input type="text" name="uhid" placeholder="Enter UHID to verify member..." required>
+                    <button class="btn btn-primary rounded-pill px-4 fw-bold" type="submit">Verify</button>
+                </form>
+            </div>
         </div>
-        <div class="col-md-6">
-            <form method="post" asp-page-handler="Search" class="d-flex shadow-sm rounded-pill bg-white">
-                <input type="text" name="uhid" class="form-control border-0 search-bar" placeholder="Enter UHID to verify member..." required>
-                <button class="btn btn-primary rounded-pill px-4" type="submit">
-                    <i class="fa fa-search me-2"></i>Verify
-                </button>
-            </form>
-            @if (TempData["SearchError"] != null)
+
+        <div class="row g-4 mb-5">
+            @if (User.IsInRole("CorpUser") || User.IsInRole("Admin"))
             {
-                <div class="text-danger small mt-2 ms-3 animate__animated animate__headShake">
-                    <i class="fa fa-times-circle"></i> @TempData["SearchError"]
+            <div class="col-xl">
+                <div class="kpi-card p-4">
+                    <div class="kpi-icon-box bg-light-blue"><i class="fa-solid fa-building"></i></div>
+                    <div>
+                        <div class="kpi-label">Companies</div>
+                        <div class="kpi-number">@Model.TotalCompanies</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl">
+                <div class="kpi-card p-4">
+                    <div class="kpi-icon-box bg-light-purple"><i class="fa-solid fa-plus-circle"></i></div>
+                    <div>
+                        <div class="kpi-label">Reg. Today</div>
+                        <div class="kpi-number">@Model.TodayRegistrations</div>
+                    </div>
+                </div>
+            </div>
+            }
+            @if (User.IsInRole("CardUser") || User.IsInRole("Admin"))
+            {
+            <div class="col-xl">
+                <div class="kpi-card p-4">
+                    <div class="kpi-icon-box bg-light-green"><i class="fa-solid fa-id-card"></i></div>
+                    <div>
+                        <div class="kpi-label">Total Cards</div>
+                        <div class="kpi-number">@Model.TotalCards</div>
+                    </div>
+                </div>
+                </div>
+            
+               <div class="col-xl">
+                    <div class="kpi-card p-4">
+                        <div class="kpi-icon-box bg-light-cyan"><i class="fa-solid fa-calendar-day"></i></div>
+                        <div>
+                            <div class="kpi-label">Issued Today</div>
+                            <div class="kpi-number">@Model.TodayIssuedCards</div>
+                       </div>
+                    </div>
+                </div> 
+            }
+            <div class="col-xl">
+                <div class="kpi-card p-4">
+                    <div class="kpi-icon-box bg-light-orange"><i class="fa-solid fa-rotate"></i></div>
+                    <div>
+                        <div class="kpi-label">Pending Sync</div>
+                        <div class="kpi-number">@Model.PendingSyncCount</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row g-4 mb-5">
+           @if (User.IsInRole("CorpUser") || User.IsInRole("Admin"))
+            {
+                <div class="col-lg-8">
+                    <div class="card glass-card h-100">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold mb-4">Company Registration Trend (2026)</h5>
+                            <div style="height: 350px;"><canvas id="registrationChart"></canvas></div>
+                        </div>
+                    </div>
                 </div>
             }
-        </div>
-    </div>
-
-    <div class="row g-4 mb-5">
-        <div class="col-md-3">
-            <div class="card glass-card p-3">
-                <div class="d-flex align-items-center">
-                    <div class="kpi-icon bg-soft-primary me-3 shadow-sm"><i class="fa fa-building"></i></div>
-                    <div>
-                        <small class="text-muted fw-bold text-uppercase">Companies</small>
-                        <h3 class="mb-0 fw-bold">@Model.TotalCompanies</h3>
+            @if (User.IsInRole("CardUser") || User.IsInRole("Admin"))
+            {
+                <div class="col-lg-4">
+                    <div class="card glass-card h-100">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold mb-4 text-center">Patient Card Type Mix</h5>
+                            <div style="height: 350px;"><canvas id="cardTypeChart"></canvas></div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card glass-card p-3">
-                <div class="d-flex align-items-center">
-                    <div class="kpi-icon bg-soft-success me-3 shadow-sm"><i class="fa fa-id-card"></i></div>
-                    <div>
-                        <small class="text-muted fw-bold text-uppercase">Total Cards</small>
-                        <h3 class="mb-0 fw-bold">@Model.TotalCardsIssued</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card glass-card p-3">
-                <div class="d-flex align-items-center">
-                    <div class="kpi-icon bg-soft-info me-3 shadow-sm"><i class="fa fa-calendar-check"></i></div>
-                    <div>
-                        <small class="text-muted fw-bold text-uppercase">Issued Today</small>
-                        <h3 class="mb-0 fw-bold">@Model.CardsIssuedToday</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card glass-card p-3">
-                <div class="d-flex align-items-center">
-                    <div class="kpi-icon bg-soft-warning me-3 shadow-sm"><i class="fa fa-sync"></i></div>
-                    <div>
-                        <small class="text-muted fw-bold text-uppercase">Pending Sync</small>
-                        <h3 class="mb-0 fw-bold">@Model.PendingSyncCount</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-   <div class="row g-4 mb-5">
-     <div class="col-lg-8">
-         <div class="card glass-card h-100">
-             <div class="card-body p-4">
-                 <h5 class="fw-bold mb-4">Company Registration Trend (2026)</h5>
-                 <div style="position: relative; height: 300px;">
-                     <canvas id="registrationChart"></canvas>
-                 </div>
-             </div>
-         </div>
-     </div>
-
-     <div class="col-lg-4">
-         <div class="card glass-card h-100">
-             <div class="card-body p-4 text-center">
-                 <h5 class="fw-bold mb-4">Patient Card Type Mix</h5>
-                 <div style="position: relative; height: 300px;">
-                     <canvas id="cardTypeChart"></canvas>
-                 </div>
-             </div>
-         </div>
-     </div>
- </div>
-
-    <div class="card glass-card mb-5">
-        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center rounded-top">
-            <h5 class="fw-bold mb-0 ps-2">Recent Company Registrations</h5>
-            <a href="/Admin/Companies" class="btn btn-link text-decoration-none fw-bold">View All <i class="fa fa-arrow-right small"></i></a>
-        </div>
-        <div class="table-responsive">
-            <table class="table align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th class="px-4">Company Name</th>
-                        <th>Contact Person</th>
-                        <th>Location/Pin</th>
-                        <th>Registered Date</th>
-                        <th class="text-end px-4">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var company in Model.RecentCompanies)
-                    {
-                        <tr>
-                            <td class="px-4 fw-bold text-primary">@company.VchCompanyName</td>
-                            <td>@company.VchContactPerson</td>
-                            <td><span class="badge bg-light text-dark fw-normal border">@company.VchPincode</span></td>
-                            <td>@company.DtRegistration?.ToString("dd MMM yyyy")</td>
-                            <td class="text-end px-4">
-                                <span class="badge rounded-pill bg-soft-success px-3">Active</span>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+            }
         </div>
     </div>
 </div>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    
     <script>
-        // 1. Connect C# data to JS variables
-        const registrationData = @Html.Raw(Json.Serialize(Model.MonthlyRegistrationData));
-        const cardTierData = @Html.Raw(Json.Serialize(Model.CardTypeDistribution));
+        Chart.register(ChartDataLabels);
 
-        // 2. Registration Bar Chart
-        const regCtx = document.getElementById('registrationChart');
-        if (regCtx) {
-            new Chart(regCtx.getContext('2d'), {
-                type: 'bar', 
+        // 1. Bar Chart - Only run if the element exists (CorpUser/Admin)
+        const regCanvas = document.getElementById('registrationChart');
+        if (regCanvas) {
+            const regCtx = regCanvas.getContext('2d');
+            new Chart(regCtx, {
+                type: 'bar',
                 data: {
                     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
                     datasets: [{
-                        label: 'New Registrations',
-                        data: registrationData,
-                        backgroundColor: 'rgba(13, 110, 253, 0.85)',
-                        borderRadius: 6, 
-                        hoverBackgroundColor: '#003366',
-                        maxBarThickness: 35
+                        data: @Html.Raw(Json.Serialize(Model.MonthlyRegistrationData)),
+                        backgroundColor: '#4361ee',
+                        borderRadius: 10,
                     }]
                 },
-                options: { 
-                    maintainAspectRatio: false, 
-                    plugins: { legend: { display: false } },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            color: '#4361ee',
+                            font: { weight: 'bold', size: 12 }
+                        }
+                    },
                     scales: {
-                        y: { 
-                            beginAtZero: true, 
-                            max: 15, 
-                            grid: { drawBorder: false, color: 'rgba(0, 0, 0, 0.03)', borderDash: [5, 5] },
-                            ticks: { stepSize: 2, color: '#adb5bd' }
-                        },
-                        x: { grid: { display: false }, ticks: { color: '#adb5bd' } }
+                        y: { display: false },
+                        x: { grid: { display: false }, ticks: { color: '#a3aed0' } }
                     }
                 }
             });
         }
 
-        // 3. Card Type Doughnut Chart with Metallic Colors
-        const typeCtx = document.getElementById('cardTypeChart');
-        if (typeCtx) {
-            new Chart(typeCtx.getContext('2d'), {
+        // 2. Doughnut Chart - Only run if the element exists (CardUser/Admin)
+        const typeCanvas = document.getElementById('cardTypeChart');
+        if (typeCanvas) {
+            const typeCtx = typeCanvas.getContext('2d');
+            new Chart(typeCtx, {
                 type: 'doughnut',
                 data: {
                     labels: ['Platinum', 'Gold', 'Silver'],
                     datasets: [{
-                        data: cardTierData,
-                        backgroundColor: [
-                            '#546E7A', // Deep Platinum
-                            '#FFD700', // Metallic Gold
-                            '#B0BEC5'  // Soft Silver
-                        ],
-                        hoverBackgroundColor: [
-                            '#37474F', 
-                            '#FBC02D', 
-                            '#90A4AE'  
-                        ],
-                        hoverOffset: 15,
+                        data: @Html.Raw(Json.Serialize(Model.CardTypeDistribution)),
+                        backgroundColor: ['#2b3674', '#ffda44', '#cbd5e0'],
                         borderWidth: 0,
-                        spacing: 5 
+                        spacing: 12
                     }]
                 },
-                options: { 
-                    cutout: '75%', 
+                options: {
+                    cutout: '72%',
                     maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { 
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 20,
-                                font: { family: "'Inter', sans-serif", size: 12 }
-                            }
-                        } 
-                    } 
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 25 } },
+                        datalabels: {
+                            color: (context) => context.dataset.backgroundColor[context.dataIndex] === '#ffda44' ? '#2b3674' : '#fff',
+                            font: { weight: 'bold', size: 13 },
+                            formatter: (val) => val > 0 ? val : ''
+                        }
+                    }
                 }
             });
-        } // <--- Added missing closing brace for 'if (typeCtx)'
-
-        // 4. Auto-show Verification Modal
-        $(document).ready(function () {
-            var myModalEl = document.getElementById('resultModal');
-            if (myModalEl) {
-                var myModal = new bootstrap.Modal(myModalEl);
-                myModal.show();
-            }
-        });
+        }
     </script>
 }

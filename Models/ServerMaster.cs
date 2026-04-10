@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace PLCARD.Models;
 
-public partial class TblServerRegistry
+public partial class ServerMaster
 {
     public int IntServerId { get; set; }
 
@@ -13,25 +13,13 @@ public partial class TblServerRegistry
 
     public string VchLocation { get; set; }
 
-    public string VchApiUrl { get; set; }
-
-    public string VchApiKey { get; set; }
-
-    public DateTime? DtLastCardSync { get; set; }
-
-    public DateTime? DtLastCorpSync { get; set; }
-
-    public DateTime? DtLastMasterSync { get; set; }
-
-    public DateTime? DtLastSync { get; set; }
-
     public bool? BitIsActive { get; set; }
 
     public DateTime? DtCreated { get; set; }
 
     public string VchCreatedBy { get; set; }
 
-    public string VchApihealth { get; set; }
+    public virtual ICollection<TblHubServiceEndpoints> TblHubServiceEndpoints { get; set; } = new List<TblHubServiceEndpoints>();
 
     public virtual ICollection<TblSyncQueue> TblSyncQueue { get; set; } = new List<TblSyncQueue>();
 }

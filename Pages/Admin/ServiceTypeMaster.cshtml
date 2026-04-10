@@ -1,0 +1,168 @@
+﻿@page
+@model PLCARD.Pages.Admin.ServiceTypeMasterModel
+@{
+    ViewData["Title"] = "Service Type Master";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="text-primary mb-0">Service Type Master</h3>
+            <p class="text-muted small">Manage API endpoints for Indus Healthcare Hubs</p>
+        </div>
+        <button class="btn btn-primary shadow-sm" onclick="openServiceModal()">
+            <i class="fas fa-plus-circle me-1"></i> Add New Service
+        </button>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-primary">
+                    <tr>
+                        <th class="ps-4">Service Name</th>
+                        <th>Method</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.ServiceTypes)
+                    {
+                        <tr>
+                            <td class="ps-4"><strong>@item.ServiceName</strong></td>
+                            <td><span class="badge @(item.DefaultMethod == "POST" ? "bg-warning text-dark" : "bg-info")">@item.DefaultMethod</span></td>
+                            <td><small class="text-muted">@item.Description</small></td>
+                            <td>
+                                <span class="badge rounded-pill @(item.IsActive ? "bg-success" : "bg-danger")">
+                                    @(item.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-sm btn-outline-primary"
+                                        onclick="editService(@item.ServiceTypeId, '@item.ServiceName', '@item.DefaultMethod', '@item.Description', @(item.IsActive ? "true" : "false"))">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="serviceTypeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow border-0">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalTitle">Define Service</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="frmServiceType">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="hdnServiceTypeId" value="0" />
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark">Service Name</label>
+                        <input type="text" class="form-control" id="txtServiceName" placeholder="e.g. Card Count" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark">Default HTTP Method</label>
+                        <select class="form-select" id="ddlDefaultMethod">
+                            <option value="GET">GET (Fetch Data)</option>
+                            <option value="POST">POST (Sync Data)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark">Description</label>
+                        <textarea class="form-control" id="txtDescription" rows="2" placeholder="What is this URL used for?"></textarea>
+                    </div>
+
+                    <div class="form-check form-switch mt-3">
+                        <input class="form-check-input" type="checkbox" id="chkIsActive" checked>
+                        <label class="form-check-label fw-bold" for="chkIsActive">Service Active</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer bg-light border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary px-4 shadow-sm" onclick="saveServiceType()">
+                    <i class="fas fa-save me-1"></i> Save Service
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openServiceModal() {
+            $('#frmServiceType')[0].reset();
+            $('#hdnServiceTypeId').val(0);
+            $('#modalTitle').text('Define New Service');
+            $('#serviceTypeModal').modal('show');
+        }
+
+        function editService(id, name, method, desc, active) {
+            $('#hdnServiceTypeId').val(id);
+            $('#txtServiceName').val(name);
+            $('#ddlDefaultMethod').val(method);
+            $('#txtDescription').val(desc);
+            $('#chkIsActive').prop('checked', active);
+            $('#modalTitle').text('Edit Service Definition');
+            $('#serviceTypeModal').modal('show');
+        }
+
+               function saveServiceType() {
+            // Collect values manually to ensure they are correct
+            var id = $('#hdnServiceTypeId').val() || 0;
+            var name = $('#txtServiceName').val();
+            var method = $('#ddlDefaultMethod').val();
+            var desc = $('#txtDescription').val();
+            var active = $('#chkIsActive').is(':checked');
+
+            if (!name) {
+                alert("Please enter a service name.");
+                return;
+            }
+
+            // This creates a clean object to send to the server
+            var postData = {
+                ServiceTypeId: id,
+                ServiceName: name,
+                DefaultMethod: method,
+                Description: desc,
+                IsActive: active
+            };
+
+            $.ajax({
+                type: "POST",
+                url: "?handler=SaveServiceType",
+                data: postData,
+                // This is key for Razor Pages
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("XSRF-TOKEN", $('input:hidden[name="__RequestVerificationToken"]').val());
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert("Saved Successfully!");
+                        location.reload();
+                    } else {
+                        alert("Server Error: " + response.message);
+                    }
+                },
+                error: function (xhr) {
+                    // This will help us find the EXACT error
+                    console.error("Status: " + xhr.status);
+                    console.error("Error Detail: " + xhr.responseText);
+                    alert("Critical Error! Press F12 and check the Console tab.");
+                }
+            });
+        }
+    </script>
+}

@@ -4,14 +4,17 @@ using PLCARD.Data;
 using PLCARD.Models;
 using PLCARD.Models.DTOs;
 using System.Net.Http.Json;
+using Microsoft.Data.SqlClient;
 
 namespace PLCARD.Services;
 
-public class GlobalSyncWorker(IServiceProvider serviceProvider, IHttpClientFactory httpClientFactory, ILogger<GlobalSyncWorker> logger) : BackgroundService
+public class GlobalSyncWorker(IServiceProvider serviceProvider, IHttpClientFactory httpClientFactory, ILogger<GlobalSyncWorker> logger, IConfiguration configuration) : BackgroundService
 {
+    private readonly string _connectionString = configuration.GetConnectionString("DefaultConnection");
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        logger.LogInformation("Global Sync Worker started.");
+        logger.LogInformation("Global Sync Worker (Dynamic Master-Detail) started.");
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -24,7 +27,7 @@ public class GlobalSyncWorker(IServiceProvider serviceProvider, IHttpClientFacto
                 logger.LogError(ex, "Error occurred in Global Sync Worker.");
             }
 
-            // Wait for 15 minutes before the next run (adjustable via TblGlobalSettings)
+            // Sync interval: 1 minute
             await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
         }
     }
@@ -35,7 +38,8 @@ public class GlobalSyncWorker(IServiceProvider serviceProvider, IHttpClientFacto
         var context = scope.ServiceProvider.GetRequiredService<PLCARDContext>();
         var http = httpClientFactory.CreateClient();
 
-        // 1. Get all pending items from the queue (Handling nullable BitProcessed)
+        // 1. Fetch pending items from the queue
+        // Note: Using IntServerId to match your TblSyncQueue model
         var pendingItems = await context.TblSyncQueue
             .Where(q => q.BitProcessed != true && q.IntRetryCount < 5)
             .OrderBy(q => q.VchModule == "MASTER" ? 0 : 1)
@@ -43,23 +47,35 @@ public class GlobalSyncWorker(IServiceProvider serviceProvider, IHttpClientFacto
 
         if (!pendingItems.Any()) return;
 
+        // Grouping by the Foreign Key to ServerMaster
         var groupedByServer = pendingItems.GroupBy(q => q.IntServerId);
 
         foreach (var serverGroup in groupedByServer)
         {
-            var server = await context.TblServerRegistry.FindAsync(serverGroup.Key);
+            // Use the new ServerMaster DbSet from your Context
+            var server = await context.ServerMaster.FindAsync(serverGroup.Key);
 
-            // Handling nullable BitIsActive
             if (server == null || server.BitIsActive != true) continue;
+
+            // 2. FETCH DYNAMIC URL
+            // We fetch the 'Master Data Sync' endpoint (Assuming ServiceTypeId = 1)
+            string syncUrl = await GetEndpointUrl(server.IntServerId, 1);
+
+            if (string.IsNullOrEmpty(syncUrl))
+            {
+                logger.LogWarning($"Hub '{server.VchServerName}' has no Sync URL configured in TblHubServiceEndpoints.");
+                continue;
+            }
 
             foreach (var item in serverGroup)
             {
-                bool success = await PushRecordToRemote(server, item, context, http);
+                // Push data to the dynamically retrieved URL
+                bool success = await PushRecordToRemote(syncUrl, item, context, http);
 
                 if (success)
                 {
                     item.BitProcessed = true;
-                    UpdateRegistryTimestamp(server, item.VchModule);
+                    UpdateRegistryTimestamp(server);
                 }
                 else
                 {
@@ -69,84 +85,31 @@ public class GlobalSyncWorker(IServiceProvider serviceProvider, IHttpClientFacto
             await context.SaveChangesAsync(ct);
         }
     }
-    //private async Task<bool> PushRecordToRemote(TblServerRegistry server, TblSyncQueue queueItem, PLCARDContext db, HttpClient http)
-    //{
-    //    try
-    //    {
-    //        // 1. Prepare the specific DTO (the "envelope") for the API
-    //        object? payload = null;
 
-    //        if (queueItem.VchModule == "CORP")
-    //        {
-    //            var company = await db.TblCompanyRegistration.FindAsync(queueItem.IntRecordId);
-    //            if (company == null) return true; // Record was deleted, mark as processed
+    private async Task<string> GetEndpointUrl(int serverId, int serviceTypeId)
+    {
+        using var conn = new SqlConnection(_connectionString);
+        await conn.OpenAsync();
+        // Query the new Mapping Table
+        var cmd = new SqlCommand("SELECT VchEndpointUrl FROM TblHubServiceEndpoints WHERE IntServerId = @SId AND ServiceTypeId = @STId", conn);
+        cmd.Parameters.AddWithValue("@SId", serverId);
+        cmd.Parameters.AddWithValue("@STId", serviceTypeId);
 
-    //            // Map database entity to the light-weight DTO
-    //            payload = new ComapnySyncDTO
-    //            {
-    //                IntCompanyId = company.IntCompanyId,
-    //                VchCompanyName = company.VchCompanyName,
-    //                IntPlanId = company.IntPlanId,
-    //                VchContactPerson = company.VchContactPerson,
-    //                VchContactNo = company.VchContactNo,
-    //                VchEmail = company.VchEmail,
-    //                VchGstNo = company.VchGstNo,
-    //                VchPanNo = company.VchPanNo,
-    //                VchPincode = company.VchPincode
-    //            };
-    //        }
-    //        else if (queueItem.VchModule == "CARD")
-    //        {
-    //            // We can add the CardSyncDTO mapping here next!
-    //            //var card = await db.TblCardRegistration.FindAsync(queueItem.IntRecordId);
-    //            //if (card == null) return true;
-    //            //payload = card; // For now, or map to CardSyncDTO
-    //        }
+        var result = await cmd.ExecuteScalarAsync();
+        return result?.ToString() ?? string.Empty;
+    }
 
-    //        if (payload == null) return true;
-
-    //        // 2. Set up headers (using the key from your Registry)
-    //        http.DefaultRequestHeaders.Clear();
-    //        if (!string.IsNullOrEmpty(server.VchApiKey))
-    //        {
-    //            http.DefaultRequestHeaders.Add("X-Sync-Key", server.VchApiKey);
-    //        }
-
-    //        // 3. Send the Data
-    //        // Note: We use server.VchApiUrl directly because it already contains the full path
-    //        var response = await http.PostAsJsonAsync(server.VchApiUrl, payload);
-
-    //        if (!response.IsSuccessStatusCode)
-    //        {
-    //            // If the API rejects it, capture the reason (e.g., 400 Bad Request)
-    //            var errorBody = await response.Content.ReadAsStringAsync();
-    //            queueItem.VchErrorLog = $"API Error ({response.StatusCode}): {errorBody}";
-    //            return false;
-    //        }
-
-    //        return true; // Success! Record will turn Green.
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        // Capture network timeouts or "Connection Refused" errors
-    //        queueItem.VchErrorLog = $"Network Error: {ex.Message}";
-    //        return false;
-    //    }
-    //}
-
-    private async Task<bool> PushRecordToRemote(TblServerRegistry server, TblSyncQueue queueItem, PLCARDContext db, HttpClient http)
+    private async Task<bool> PushRecordToRemote(string apiUrl, TblSyncQueue queueItem, PLCARDContext db, HttpClient http)
     {
         try
         {
-            // 1. Initialize the Gateway Wrapper
-            
             var gatewayRequest = new SyncGatewayRequest();
 
             if (queueItem.VchModule == "CORP")
             {
                 var company = await db.TblCompanyRegistration.FindAsync(queueItem.IntRecordId);
                 if (company == null) return true;
-                gatewayRequest.SyncType = "COMPANY"; // Matches the 'case' in your API
+                gatewayRequest.SyncType = "COMPANY";
                 gatewayRequest.CompanyData = new ComapnySyncDTO
                 {
                     IntCompanyId = company.IntCompanyId,
@@ -168,30 +131,25 @@ public class GlobalSyncWorker(IServiceProvider serviceProvider, IHttpClientFacto
                 gatewayRequest.CardData = new LiteCardSyncDTO
                 {
                     IntRegId = card.IntRegId,
-                    IntCardId = card.IntCardId, 
+                    IntCardId = card.IntCardId,
                     VchHmsRcpt = card.VchHmsRcpt,
                     VchCardType = card.VchCardType,
                     VchUhidno = card.VchUhidno,
                     Vchname = card.Vchname
-                };               
+                };
             }
+
             if (string.IsNullOrEmpty(gatewayRequest.SyncType)) return true;
 
-            // 2. Set up headers
             http.DefaultRequestHeaders.Clear();
-            if (!string.IsNullOrEmpty(server.VchApiKey))
-            {
-                http.DefaultRequestHeaders.Add("X-Sync-Key", server.VchApiKey);
-            }
+            // Optional: If you add VchApiKey to ServerMaster later, add it here
 
-            // 3. Send the Gateway Wrapper (The Envelope)
-            // server.VchApiUrl is now: http://localhost:5205/api/Patient/ProcessSync
-            var response = await http.PostAsJsonAsync(server.VchApiUrl, gatewayRequest);
+            var response = await http.PostAsJsonAsync(apiUrl, gatewayRequest);
 
             if (!response.IsSuccessStatusCode)
             {
                 var errorBody = await response.Content.ReadAsStringAsync();
-                queueItem.VchErrorLog = $"Gateway Error ({response.StatusCode}): {errorBody}";
+                queueItem.VchErrorLog = $"Sync Error ({response.StatusCode}): {errorBody}";
                 return false;
             }
 
@@ -204,12 +162,11 @@ public class GlobalSyncWorker(IServiceProvider serviceProvider, IHttpClientFacto
         }
     }
 
-    private void UpdateRegistryTimestamp(TblServerRegistry server, string module)
+    private void UpdateRegistryTimestamp(ServerMaster server)
     {
-        if (module == "CARD") server.DtLastCardSync = DateTime.Now;
-        else if (module == "CORP") server.DtLastCorpSync = DateTime.Now;
-        else if (module == "MASTER") server.DtLastMasterSync = DateTime.Now;
-        server.DtLastSync = DateTime.Now;
+        // Update general status (Old module-specific columns are deleted)
         server.BitIsActive = true;
+        // If you added a DtLastSync column to ServerMaster, update it here:
+        // server.DtLastSync = DateTime.Now;
     }
 }

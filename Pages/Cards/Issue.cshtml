@@ -238,32 +238,39 @@
     </div>
 </div>
 
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
         $(function () {
-            // Anti-Forgery Setup for AJAX
+            // Anti-Forgery Token for AJAX
             const token = $('input[name="__RequestVerificationToken"]').val();
+            let masterCardTypes = [];
 
-            // 1. Cost Fetcher
-            $('#cardSelect').change(function () {
-                const id = $(this).val();
-                if (id) {
-                    $('#displayCost').html('<i class="fa fa-spinner fa-spin"></i>');
-                    $.getJSON(`?handler=CardCost&id=${id}`, data => $('#displayCost').text(data.cost));
+            // --- 1. UI VALIDATION ENGINE ---
+            // Checks for errors, updates the Save button, and calculates total revenue
+            function validateTable() {
+                const errorCount = $('#previewTable tbody tr.table-danger').length;
+                const totalRows = $('#previewTable tbody tr').length;
+                const $btn = $('#btnSaveBulk');
+
+                if (totalRows === 0) {
+                    $btn.prop('disabled', true).text("No records to save");
+                } else if (errorCount > 0) {
+                    $btn.prop('disabled', true).text(`Fix or Remove ${errorCount} error(s)`);
+                } else {
+                    $btn.prop('disabled', false).text("Confirm & Register All");
                 }
-            });
+                
+                // Real-time Total Calculation
+                let totalAmt = 0;
+                $('.val-amt').each(function() { 
+                    totalAmt += parseInt($(this).val()) || 0; 
+                });
+                $('#bulkTotal').text(totalAmt);
+            }
 
-            // 2. Age from DOB
-            $('#dobInput').on('change', function () {
-                const dob = new Date($(this).val());
-                const today = new Date();
-                let age = today.getFullYear() - dob.getFullYear();
-                if (today.getMonth() < dob.getMonth() || (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate())) age--;
-                $('#ageInput').val(age >= 0 ? age : 0);
-            });
-
-            // 3. Excel Preview
+            // --- 2. EXCEL PREVIEW AJAX ---
             $('#bulkUploadForm').submit(function (e) {
                 e.preventDefault();
                 const $btn = $(this).find('button[type="submit"]');
@@ -275,13 +282,20 @@
                     url: '?handler=PreviewExcel',
                     type: 'POST',
                     data: new FormData(this),
-                    processData: false, contentType: false,
+                    processData: false,
+                    contentType: false,
                     success: function (res) {
                         if (res.error) { alert(res.error); return; }
                         
+                        masterCardTypes = res.cardList; // Store valid types for live-edit check
                         let html = '';
+                        
                         res.preview.forEach(i => {
                             const rowErr = i.isValid ? "" : "table-danger";
+                            const statusIcon = i.isValid 
+                                ? '<i class="fa fa-circle-check text-success"></i>' 
+                                : `<div class="text-danger"><i class="fa fa-triangle-exclamation"></i><br/><small style="font-size:9px; font-weight:bold;">${i.error}</small></div>`;
+
                             html += `<tr class="${rowErr}">
                                 <td><input type="text" class="form-control val-name" value="${i.name || ''}"></td>
                                 <td><input type="text" class="form-control val-mobile" value="${i.mobile || ''}"></td>
@@ -299,44 +313,87 @@
                                 <td><input type="number" class="form-control val-amt" value="${i.amount || 0}"></td>
                                 <td><input type="text" class="form-control val-card" value="${i.cardName || ''}"></td>
                                 <td><input type="text" class="form-control val-refby" value="${i.refBy || ''}"></td>
-                                <td class="text-center">${i.isValid ? '<i class="fa fa-circle-check text-success"></i>' : '<i class="fa fa-triangle-exclamation text-danger" title="'+i.error+'"></i>'}</td>
+                                <td class="text-center status-cell">${statusIcon}</td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-link text-danger p-0 btn-remove-row" title="Remove Row">
+                                        <i class="fa fa-trash-can"></i>
+                                    </button>
+                                </td>
                             </tr>`;
                         });
+                        
                         $('#previewTable tbody').html(html);
-                        $('#bulkTotal').text(res.totalAmount);
+                        validateTable();
                         $('#previewModal').modal('show');
                     },
                     complete: () => $btn.prop('disabled', false).html(originalHtml)
                 });
             });
 
-            // 4. Final Save
+            // --- 3. LIVE RE-VALIDATION (FIX ERRORS ON THE FLY) ---
+            $(document).on('input', '.val-card, .val-uhid', function() {
+                const $row = $(this).closest('tr');
+                const $input = $(this);
+                
+                if ($input.hasClass('val-card')) {
+                    const typedVal = $input.val().trim().toLowerCase();
+                    const isNowValid = masterCardTypes.some(t => t.toLowerCase() === typedVal);
+                    
+                    if (isNowValid) {
+                        $row.removeClass('table-danger');
+                        $row.find('.status-cell').html('<i class="fa fa-circle-check text-success"></i>');
+                    } else {
+                        $row.addClass('table-danger');
+                        $row.find('.status-cell').html('<div class="text-danger"><i class="fa fa-triangle-exclamation"></i><br/><small style="font-size:9px">Invalid Card Name</small></div>');
+                    }
+                } 
+                
+                if ($input.hasClass('val-uhid')) {
+                    // If user modifies UHID, assume they are fixing the duplicate
+                    if ($input.val().trim() !== "") {
+                        $row.removeClass('table-danger');
+                        $row.find('.status-cell').html('<i class="fa fa-circle-check text-success"></i>');
+                    }
+                }
+
+                validateTable();
+            });
+
+            // --- 4. REMOVE ROW ACTION ---
+            $(document).on('click', '.btn-remove-row', function() {
+                $(this).closest('tr').fadeOut(200, function() { 
+                    $(this).remove(); 
+                    validateTable(); 
+                });
+            });
+
+            // --- 5. FINAL REGISTER ACTION ---
             $('#btnSaveBulk').click(function () {
                 const list = [];
                 $('#previewTable tbody tr').each(function () {
                     list.push({
-                        Vchname: $(this).find('.val-name').val(),
-                        Vchcontactno: $(this).find('.val-mobile').val(),
-                        DtDob: $(this).find('.val-dob').val(),
-                        Vchsex: $(this).find('.val-sex').val(),
-                        Intage: parseInt($(this).find('.val-age').val()),
-                        VchspouseName: $(this).find('.val-spouse').val(),
-                        Vchemail: $(this).find('.val-email').val(),
-                        VchAddress: $(this).find('.val-address').val(),
-                        Vchcity: $(this).find('.val-city').val(),
-                        VchsState: $(this).find('.val-state').val(),
-                        Vchpincode: $(this).find('.val-pin').val(),
-                        VchUhidno: $(this).find('.val-uhid').val(),
-                        VchHmsRcpt: $(this).find('.val-rcpt').val(),
-                        IntCharges: parseInt($(this).find('.val-amt').val()),
-                        VchCardType: $(this).find('.val-card').val(),
-                        VchCardRefBy: $(this).find('.val-refby').val()
+                        name: $(this).find('.val-name').val(),
+                        mobile: $(this).find('.val-mobile').val(),
+                        dob: $(this).find('.val-dob').val(),
+                        gender: $(this).find('.val-sex').val(),
+                        age: $(this).find('.val-age').val(),
+                        spouse: $(this).find('.val-spouse').val(),
+                        email: $(this).find('.val-email').val(),
+                        address: $(this).find('.val-address').val(),
+                        city: $(this).find('.val-city').val(),
+                        state: $(this).find('.val-state').val(),
+                        pincode: $(this).find('.val-pin').val(),
+                        uhid: $(this).find('.val-uhid').val(),
+                        receipt: $(this).find('.val-rcpt').val(),
+                        amount: parseInt($(this).find('.val-amt').val()),
+                        cardName: $(this).find('.val-card').val(),
+                        refBy: $(this).find('.val-refby').val()
                     });
                 });
-
+                
                 const $saveBtn = $(this);
                 $saveBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin me-2"></i> Registering...');
-
+                
                 $.ajax({
                     url: '?handler=UploadEdited',
                     type: 'POST',
@@ -344,14 +401,24 @@
                     data: JSON.stringify(list),
                     headers: { "RequestVerificationToken": token },
                     success: function (res) {
-                        alert(`Success! ${res.success} cards registered and added to sync queue.`);
+                        alert(`Successfully registered ${res.success} cards.`);
                         location.href = './Index';
                     },
-                    error: (err) => {
-                        alert("Error saving data. Check network connection.");
+                    error: () => {
+                        alert("Error saving data. Some records might have invalid fields.");
                         $saveBtn.prop('disabled', false).text("Confirm & Register All");
+                        validateTable();
                     }
                 });
+            });
+
+            // --- 6. INDIVIDUAL RECORD COST FETCHER ---
+            $('#cardSelect').change(function () {
+                const id = $(this).val();
+                if (id) {
+                    $('#displayCost').html('<i class="fa fa-spinner fa-spin"></i>');
+                    $.getJSON(`?handler=CardCost&id=${id}`, data => $('#displayCost').text(data.cost));
+                }
             });
         });
     </script>

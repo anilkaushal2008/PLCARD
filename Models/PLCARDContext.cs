@@ -25,11 +25,13 @@ public partial class PLCARDContext : DbContext
 
     public virtual DbSet<AspNetUsers> AspNetUsers { get; set; }
 
+    public virtual DbSet<ServerMaster> ServerMaster { get; set; }
+
+    public virtual DbSet<ServiceTypeMaster> ServiceTypeMaster { get; set; }
+
     public virtual DbSet<TblCardMaster> TblCardMaster { get; set; }
 
     public virtual DbSet<TblCardRegistration> TblCardRegistration { get; set; }
-
-    public virtual DbSet<TblCardRegistrationOld> TblCardRegistrationOld { get; set; }
 
     public virtual DbSet<TblCompanyRegistration> TblCompanyRegistration { get; set; }
 
@@ -37,7 +39,7 @@ public partial class PLCARDContext : DbContext
 
     public virtual DbSet<TblGlobalSettings> TblGlobalSettings { get; set; }
 
-    public virtual DbSet<TblServerRegistry> TblServerRegistry { get; set; }
+    public virtual DbSet<TblHubServiceEndpoints> TblHubServiceEndpoints { get; set; }
 
     public virtual DbSet<TblSyncQueue> TblSyncQueue { get; set; }
 
@@ -119,6 +121,43 @@ public partial class PLCARDContext : DbContext
                         j.HasKey("UserId", "RoleId");
                         j.HasIndex(new[] { "RoleId" }, "IX_AspNetUserRoles_RoleId");
                     });
+        });
+
+        modelBuilder.Entity<ServerMaster>(entity =>
+        {
+            entity.HasKey(e => e.IntServerId).HasName("PK__ServerMa__8AF32E92FF25E16A");
+
+            entity.Property(e => e.BitIsActive).HasDefaultValue(true);
+            entity.Property(e => e.DtCreated)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.VchCreatedBy)
+                .HasMaxLength(50)
+                .HasDefaultValue("Admin");
+            entity.Property(e => e.VchLocation)
+                .IsRequired()
+                .HasMaxLength(150);
+            entity.Property(e => e.VchServerName)
+                .IsRequired()
+                .HasMaxLength(150);
+        });
+
+        modelBuilder.Entity<ServiceTypeMaster>(entity =>
+        {
+            entity.HasKey(e => e.ServiceTypeId).HasName("PK__ServiceT__8ADFAA6C6229EF33");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.DefaultMethod)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasDefaultValue("GET");
+            entity.Property(e => e.Description).HasMaxLength(250);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.ServiceName)
+                .IsRequired()
+                .HasMaxLength(100);
         });
 
         modelBuilder.Entity<TblCardMaster>(entity =>
@@ -270,113 +309,6 @@ public partial class PLCARDContext : DbContext
                 .HasConstraintName("FK_tblCardRegistration_tblCardMaster1");
         });
 
-        modelBuilder.Entity<TblCardRegistrationOld>(entity =>
-        {
-            entity
-                .HasNoKey()
-                .ToTable("tblCardRegistration_old", tb => tb.HasTrigger("TR_Sync_CardRegistration"));
-
-            entity.Property(e => e.Code).HasColumnName("code");
-            entity.Property(e => e.DtDob)
-                .HasColumnType("datetime")
-                .HasColumnName("dtDOB");
-            entity.Property(e => e.Dtcreated)
-                .HasDefaultValueSql("(getdate())", "DF__tblCardRe__dtcre__276EDEB3")
-                .HasColumnType("datetime")
-                .HasColumnName("dtcreated");
-            entity.Property(e => e.Dtupdated)
-                .HasColumnType("datetime")
-                .HasColumnName("dtupdated");
-            entity.Property(e => e.FkBId).HasColumnName("fk_b_ID");
-            entity.Property(e => e.IntCardId).HasColumnName("intCardID");
-            entity.Property(e => e.IntCharges).HasColumnName("intCharges");
-            entity.Property(e => e.IntRegId)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("intRegID");
-            entity.Property(e => e.Intage).HasColumnName("intage");
-            entity.Property(e => e.VchAddress)
-                .HasMaxLength(500)
-                .IsUnicode(false)
-                .HasColumnName("vch_address");
-            entity.Property(e => e.VchCardRefBy)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("vchCardRefBy");
-            entity.Property(e => e.VchCardType)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("vchCardType");
-            entity.Property(e => e.VchHmsRcpt)
-                .HasMaxLength(18)
-                .IsUnicode(false)
-                .HasColumnName("vchHMS_Rcpt");
-            entity.Property(e => e.VchUhidno)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasColumnName("vchUhidno");
-            entity.Property(e => e.Vchcity)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("vchcity");
-            entity.Property(e => e.Vchcontactno)
-                .HasMaxLength(13)
-                .IsUnicode(false)
-                .HasColumnName("vchcontactno");
-            entity.Property(e => e.Vchcreatedby)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("vchcreatedby");
-            entity.Property(e => e.Vchcreatedhost)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("vchcreatedhost");
-            entity.Property(e => e.Vchemail)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("vchemail");
-            entity.Property(e => e.Vchipused)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("vchipused");
-            entity.Property(e => e.Vchname)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("vchname");
-            entity.Property(e => e.Vchpincode)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasColumnName("vchpincode");
-            entity.Property(e => e.VchsState)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("vchs_state");
-            entity.Property(e => e.Vchsex)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasColumnName("vchsex");
-            entity.Property(e => e.VchspouseName)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("vchspouseName");
-            entity.Property(e => e.Vchupdatedby)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("vchupdatedby");
-            entity.Property(e => e.Vchupdatedhost)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("vchupdatedhost");
-            entity.Property(e => e.Vchupdatedipused)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("vchupdatedipused");
-            entity.Property(e => e.Yr).HasColumnName("yr");
-
-            entity.HasOne(d => d.IntCard).WithMany()
-                .HasForeignKey(d => d.IntCardId)
-                .HasConstraintName("FK__tblCardRe__intCa__5765FF9A");
-        });
-
         modelBuilder.Entity<TblCompanyRegistration>(entity =>
         {
             entity.HasKey(e => e.IntCompanyId);
@@ -493,34 +425,23 @@ public partial class PLCARDContext : DbContext
             entity.Property(e => e.VchSettingKey).HasMaxLength(100);
         });
 
-        modelBuilder.Entity<TblServerRegistry>(entity =>
+        modelBuilder.Entity<TblHubServiceEndpoints>(entity =>
         {
-            entity.HasKey(e => e.IntServerId).HasName("PK__TblServe__8AF32E92AF5D43AD");
+            entity.HasKey(e => e.IntEndpointId).HasName("PK__TblHubSe__2678D9AE23AFA6FA");
 
-            entity.Property(e => e.BitIsActive).HasDefaultValue(true, "DF__TblServer__BitIs__160F4887");
-            entity.Property(e => e.DtCreated)
-                .HasDefaultValueSql("(getdate())", "DF__TblServer__DtCre__17036CC0")
+            entity.Property(e => e.DtLastUpdated)
+                .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.DtLastCardSync).HasColumnType("datetime");
-            entity.Property(e => e.DtLastCorpSync).HasColumnType("datetime");
-            entity.Property(e => e.DtLastMasterSync).HasColumnType("datetime");
-            entity.Property(e => e.DtLastSync).HasColumnType("datetime");
-            entity.Property(e => e.VchApiKey).HasMaxLength(100);
-            entity.Property(e => e.VchApiUrl)
-                .IsRequired()
-                .HasMaxLength(255);
-            entity.Property(e => e.VchApihealth)
-                .HasMaxLength(255)
-                .HasColumnName("vchAPIHealth");
-            entity.Property(e => e.VchCreatedBy)
-                .HasMaxLength(50)
-                .HasDefaultValue("Admin", "DF__TblServer__VchCr__17F790F9");
-            entity.Property(e => e.VchLocation)
-                .IsRequired()
-                .HasMaxLength(100);
-            entity.Property(e => e.VchServerName)
-                .IsRequired()
-                .HasMaxLength(100);
+            entity.Property(e => e.VchEndpointUrl).IsRequired();
+
+            entity.HasOne(d => d.IntServer).WithMany(p => p.TblHubServiceEndpoints)
+                .HasForeignKey(d => d.IntServerId)
+                .HasConstraintName("FK_ServerMaster");
+
+            entity.HasOne(d => d.ServiceType).WithMany(p => p.TblHubServiceEndpoints)
+                .HasForeignKey(d => d.ServiceTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ServiceMaster");
         });
 
         modelBuilder.Entity<TblSyncQueue>(entity =>
@@ -541,7 +462,7 @@ public partial class PLCARDContext : DbContext
             entity.HasOne(d => d.IntServer).WithMany(p => p.TblSyncQueue)
                 .HasForeignKey(d => d.IntServerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Queue_Server");
+                .HasConstraintName("FK_TblSyncQueue_ServerMaster");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -47,15 +47,19 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[ServerMaster]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ServiceTypeMaster]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[tblCardMaster]",
          "ObjectType": 0
       },
       {
          "Name": "[dbo].[tblCardRegistration]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[tblCardRegistration_old]",
          "ObjectType": 0
       },
       {
@@ -71,7 +75,7 @@
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[TblServerRegistry]",
+         "Name": "[dbo].[TblHubServiceEndpoints]",
          "ObjectType": 0
       },
       {
@@ -80,6 +84,10 @@
       },
       {
          "Name": "[dbo].[sp_CleanOldSyncData]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[sp_GetCardRegistrationReport]",
          "ObjectType": 1
       }
    ],

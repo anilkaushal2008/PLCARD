@@ -4,64 +4,152 @@
     ViewData["Title"] = "User Management";
 }
 
-<div class="container mt-4">
+<style>
+    /* Premium Table Card with Extra Deep Shadow & Bottom Margin */
+    .modern-table-container {
+        background: #fff;
+        border-radius: 20px;
+        overflow: hidden;
+        margin-top: 25px;
+        
+        /* Triple-Layered Shadow for "Stunning" Depth */
+        box-shadow:
+            0 20px 25px -5px rgba(0, 0, 0, 0.08),
+            0 10px 10px -5px rgba(0, 0, 0, 0.04),
+            0 40px 60px -15px rgba(0, 0, 0, 0.1) !important;
+        
+        /* Added Bottom Margin here */
+        margin-bottom: 80px;
+        border: 1px solid rgba(0,0,0,0.03);
+    }
+
+    .table-modern thead th {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        color: #fff;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        padding: 20px 25px;
+        border: none;
+        letter-spacing: 0.8px;
+    }
+    
+    .table-modern td {
+        padding: 18px 25px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .table-modern tr:last-child td { border-bottom: none; }
+
+    .role-badge {
+        font-weight: 700;
+        font-size: 0.65rem;
+        padding: 5px 12px;
+        border-radius: 50px;
+        text-transform: uppercase;
+    }
+
+    .row-deactivated { background-color: #fafbfc; opacity: 0.8; }
+</style>
+@* @if (TempData["Message"] != null)
+{
+    <div class="alert alert-success border-0 shadow-sm rounded-4 py-3 mb-4 d-flex align-items-center animate__animated animate__fadeIn">
+        <div class="bg-success bg-opacity-10 p-2 rounded-circle me-3">
+            <i class="fa fa-check-circle text-success fs-5"></i>
+        </div>
+        <div>
+            <h6 class="mb-0 fw-bold text-dark">Success!</h6>
+            <span class="text-muted small">@TempData["Message"]</span>
+        </div>
+        <button type="button" class="btn-close ms-auto shadow-none" data-bs-dismiss="alert"></button>
+    </div>
+} *@
+<div class="container-fluid mt-4 px-lg-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="text-primary"><i class="fa fa-users-gear me-2"></i>User Management</h2>
-            <p class="text-muted">View and manage all registered system users and their assigned roles.</p>
+            <h2 class="fw-bold text-dark mb-0">
+                <i class="fa fa-users-gear me-2 text-primary"></i>User Management
+            </h2>
+            <p class="text-muted small mb-0">Indus Healthcare | Manage system access and staff roles</p>
         </div>
-        <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-primary">
+        <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
             <i class="fa fa-user-plus me-1"></i> Create New User
         </a>
     </div>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-0">
-            <table class="table table-hover mb-0">
-                <thead class="bg-light">
-                    <tr>
-                        <th class="ps-4">Username / Email</th>
-                        <th>Roles</th>
-                        <th>User ID</th>
-                        <th class="text-end pe-4">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var user in Model.UsersList)
-                    {
-                        <tr>
-                            <td class="ps-4">
-                                <div class="fw-bold">@user.Username</div>
-                                <small class="text-muted">@user.Email</small>
-                            </td>
-                            <td>
-                                @foreach (var role in user.Roles)
-                                {
-                                    <span class="badge @(role == "Admin" ? "bg-danger" : "bg-info") me-1">
-                                        @role
-                                    </span>
-                                }
-                            </td>
-                            <td>
-                                <code class="small text-muted">@user.Id</code>
-                            </td>
-                            <td class="text-end pe-4">
-                                <div class="btn-group btn-group-sm">
-                                    <a class="btn btn-outline-secondary" title="Edit User">
-                                        <i class="fa fa-user-pen"></i>
-                                    </a>
-                                    @if (user.Username != User.Identity?.Name)
-                                    {
-                                        <button class="btn btn-outline-danger" title="Delete User">
-                                            <i class="fa fa-trash-can"></i>
-                                        </button>
-                                    }
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success border-0 shadow-sm rounded-3 py-3 mb-4">
+            <i class="fa fa-check-circle me-2"></i> @TempData["Message"]
         </div>
+    }
+
+    <div class="modern-table-container">
+        <table class="table table-modern mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-4">User Details</th>
+                    <th>Security Roles</th>
+                    <th>Status</th>
+                    <th class="text-end pe-4">Control Panel</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model.UsersList)
+                {
+                    <tr class="@(!user.IsActive ? "row-deactivated" : "")">
+                        <td class="ps-4">
+                            <div class="fw-bold @(user.IsActive ? "text-dark" : "text-muted")">@user.Username</div>
+                            <small class="text-muted">@user.Email</small>
+                        </td>
+                        <td>
+                            @foreach (var role in user.Roles)
+                            {
+                                <span class="badge role-badge @(role == "Admin" ? "bg-danger text-white" : "bg-primary text-white") me-1">
+                                    @role
+                                </span>
+                            }
+                        </td>
+                        <td>
+                            @if (user.IsActive)
+                            {
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">
+                                    <i class="fa fa-circle-check me-1"></i> ACTIVE
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-3 py-2 rounded-pill">
+                                    <i class="fa fa-circle-xmark me-1"></i> INACTIVE
+                                </span>
+                            }
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a asp-page="/Admin/EditUser" asp-route-id="@user.Id" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                    <i class="fa fa-user-pen"></i>
+                                </a>
+
+                                @if (user.Username != User.Identity?.Name)
+                                {
+                                    <form method="post" asp-page-handler="ToggleStatus" asp-route-id="@user.Id">
+                                        <button type="submit" class="btn btn-sm @(user.IsActive ? "btn-outline-warning" : "btn-outline-success") rounded-pill px-3" style="min-width: 120px;">
+                                            @if (user.IsActive)
+                                            {
+                                                <span><i class="fa fa-ban me-1"></i> Deactivate</span>
+                                            }
+                                            else
+                                            {
+                                                <span><i class="fa fa-check me-1"></i> Activate</span>
+                                            }
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 </div>

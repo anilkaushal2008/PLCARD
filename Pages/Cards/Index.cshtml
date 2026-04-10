@@ -1,244 +1,258 @@
 @page
 @model PLCARD.Pages.Cards.IndexModel
-@using PLCARD.Models
-@using System.Linq
 @{
-    ViewData["Title"] = "Card Audit Dashboard";
-    var records = Model.CardRecords ?? new List<TblCardRegistration>();
-
-    var gold = records.Count(x => x.IntCard?.Vchcname?.Contains("GOLD", StringComparison.OrdinalIgnoreCase) == true);
-    var silver = records.Count(x => x.IntCard?.Vchcname?.Contains("SILVER", StringComparison.OrdinalIgnoreCase) == true);
-    var platinum = records.Count(x => x.IntCard?.Vchcname?.Contains("PLATINUM", StringComparison.OrdinalIgnoreCase) == true);
+    ViewData["Title"] = "Audit Dashboard";
 }
 
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
 
 <style>
-    body {
-        background: linear-gradient(135deg, #f8fafc, #eef2ff);
+    :root {
+        --primary: #4361ee;
+        --secondary: #3f37c9;
+        --bg: #f8f9fc;
+        --text-main: #2b3674;
+        --text-muted: #a3aed0;
     }
 
-    .shadow-floating {
-        box-shadow: 0 20px 60px -15px rgba(0,0,0,0.25);
+    /* Background for the whole page area below the nav */
+    body { background-color: var(--bg) !important; }
+
+    /* DASHBOARD WRAPPER */
+    .dashboard-container {      
+        padding: 20px 20px 40px 20px; /* Reduced side padding */
+    width: 100%;
+    max-width: 100%; /* Ensures no restriction */
+    font-family: 'Inter', sans-serif;
     }
 
-    .card-compact {
-        border-radius: 18px;
-        padding: 1.2rem;
-        backdrop-filter: blur(10px);
-        background: rgba(255,255,255,0.9);
-        transition: 0.3s;
+    /* THE BLUE HEADER BOX */
+    .glass-header {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border-radius: 24px;
+        padding: 40px;
+        color: white !important;
+        margin-top: 20px;
+        margin-bottom: -50px;
+        box-shadow: 0 20px 40px rgba(67, 97, 238, 0.25);
+        position: relative;
+        z-index: 1;
     }
 
-    .card-compact:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 25px 60px rgba(0,0,0,0.15);
+    .glass-header h1, .glass-header p { color: white !important; }
+
+    /* DATE FILTER BOX IN HEADER */
+    .date-filter-box {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 14px;
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(5px);
     }
 
-    .stat-number { font-size: 2rem; font-weight: 700; }
-
-    .stat-icon-small {
-        width: 45px;
-        height: 45px;
-        background: #ecfdf5;
-        border-radius: 12px;
-        display:flex;
-        align-items:center;
-        justify-content:center;
+    .date-input-custom {
+        border: none;
+        border-radius: 8px;
+        padding: 5px 10px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text-main);
     }
 
-    .stats-strip {
-        display:flex;
-        gap:6px;
-        margin-top:10px;
+    /* THE WHITE TABLE CARD */
+    .table-card {
+        background: white;
+        border-radius: 24px;
+        padding: 30px;
+        padding-top: 60px; /* Space for the overlap */
+        border: none;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+        position: relative;
+        z-index: 0;
     }
 
-    .badge-mini {
-        flex:1;
-        font-size:0.65rem;
-        padding:5px;
-        border-radius:20px;
-        text-align:center;
-        font-weight:700;
+    /* TABLE ROW STYLING */
+    .table-custom { border-separate: separate; border-spacing: 0 12px; width: 100%; }
+    .table-custom thead th { 
+        border: none; 
+        color: var(--text-muted); 
+        text-transform: uppercase; 
+        font-size: 0.75rem; 
+        font-weight: 800; 
+        padding: 15px 20px;
+    }
+    
+    .table-custom tbody tr { 
+        background: #fff; 
+        transition: 0.3s; 
+        box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    }
+    
+    .table-custom tbody tr:hover { 
+        transform: translateY(-3px); 
+        box-shadow: 0 12px 25px rgba(0,0,0,0.06); 
+    }
+    
+    .table-custom td { padding: 20px; border: none; vertical-align: middle; }
+    .table-custom td:first-child { border-radius: 18px 0 0 18px; }
+    .table-custom td:last-child { border-radius: 0 18px 18px 0; }
+
+    /* DATATABLES UI FIXES */
+    .dataTables_wrapper .dataTables_length select {
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        background-color: #fff !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%234361ee' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 10px center !important;
+        background-size: 12px 10px !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 10px !important;
+        padding: 5px 30px 5px 12px !important;
+        font-weight: 600;
     }
 
-    .bg-gold { background:#fffbeb; color:#92400e; }
-    .bg-silver { background:#f1f5f9; color:#334155; }
-    .bg-platinum { background:#eff6ff; color:#1e40af; }
+   .dataTables_wrapper .dataTables_filter input {
+    background-color: #f4f7fe !important;
+    border: 1px solid transparent !important;
+    border-radius: 12px !important;
+    padding: 10px 18px !important;
+    color: var(--text-main) !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+    outline: none !important; /* This removes the blue ring */
+    box-shadow: none !important;
+    width: 250px !important;
+}
+.dataTables_wrapper .dataTables_filter input:focus {
+    background-color: #ffffff !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 10px 20px rgba(67, 97, 238, 0.1) !important;
+    width: 280px !important; /* Subtle expansion feel */
+}
+/* Fix spacing for the "Show Entries" text */
+.dataTables_length label {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 
-    .table-container {
-        border-radius:15px;
-        background:#fff;
-    }
+    /* BUTTONS & BADGES */
+    .badge-plan { padding: 6px 14px; border-radius: 10px; font-weight: 700; font-size: 0.7rem; }
+    .bg-gold { background: #fffbeb; color: #92400e; }
+    .bg-platinum { background: #eff6ff; color: #1e40af; }
 
-    .table tbody tr {
-        transition:0.2s;
-    }
-
-    .table tbody tr:hover {
-        background:#f1f5f9;
-        transform:scale(1.002);
-    }
-
-    #cardTable { display:none; }
+    .btn-export { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 12px; }
+    .btn-new-entry { background: white; color: var(--primary); border-radius: 12px; font-weight: 700; }
+    .btn-edit { background: #f4f7fe; color: var(--primary); border: none; border-radius: 10px; padding: 5px 15px; font-weight: 700; text-decoration: none; }
+    .btn-edit:hover { background: var(--primary); color: white; }
 </style>
 
-<div class="container-fluid mt-3 px-4 pb-5">
 
-    <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <h2 class="fw-bold mb-0">Audit Dashboard</h2>
-            <small class="text-muted">Indus Group | Card Management</small>
-        </div>
 
-        <a asp-page="./Issue" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
-            + New Registration
-        </a>
-    </div>
-
-    <!-- TOP CARDS -->
-    <div class="row g-3 mb-4">
-
-        <div class="col-lg-4">
-            <div class="card card-compact shadow-floating">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <small class="text-muted fw-bold">TOTAL</small>
-                        <div class="stat-number">@records.Count</div>
-                    </div>
-                    <div class="stat-icon-small">
-                        <i class="fa fa-id-card"></i>
-                    </div>
-                </div>
-
-                <div class="stats-strip">
-                    <span class="badge-mini bg-gold">Gold: @gold</span>
-                    <span class="badge-mini bg-silver">Silver: @silver</span>
-                    <span class="badge-mini bg-platinum">Plat: @platinum</span>
-                </div>
+<div class="dashboard-container">
+    <div class="glass-header">
+        <div class="row align-items-center">
+            <div class="col-md-4">
+                <h1 class="fw-800 mb-0" style="font-size: 2rem;">Audit Dashboard</h1>
+                <p class="opacity-75 mb-0">Shows Last 3 Months Records by Default</p>
             </div>
-        </div>
-
-        <div class="col-lg-8">
-            <div class="card card-compact shadow-floating">
-                <form method="get" class="row g-2">
-                    <div class="col-md-4">
-                        <input type="date" asp-for="FromDate" class="form-control form-control-sm bg-light border-0" />
-                    </div>
-                    <div class="col-md-4">
-                        <input type="date" asp-for="ToDate" class="form-control form-control-sm bg-light border-0" />
-                    </div>
-                    <div class="col-md-4 d-flex gap-2">
-                        <button class="btn btn-dark btn-sm w-100">Filter</button>
-                        <button asp-page-handler="ExportExcel" formmethod="post" class="btn btn-outline-primary btn-sm w-100">Export</button>
-                    </div>
+            
+            <div class="col-md-5">
+                <form method="get" class="date-filter-box d-flex align-items-center gap-2">
+                    <input type="date" asp-for="FromDate" class="date-input-custom" />
+                    <span class="text-white fw-bold">-</span>
+                    <input type="date" asp-for="ToDate" class="date-input-custom" />
+                    <button type="submit" class="btn btn-sm btn-light rounded-pill px-3 fw-bold">Filter</button>
+                    <a asp-page="./Index" class="text-white small text-decoration-none ms-1">Reset</a>
                 </form>
             </div>
-        </div>
 
-    </div>
-
-    <!-- LOADER -->
-    <div id="loader">
-        @for (int i = 0; i < 6; i++)
-        {
-            <div class="placeholder-glow mb-2">
-                <span class="placeholder col-12"></span>
+            <div class="col-md-3 text-md-end">
+                <form asp-page-handler="ExportExcel" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-export px-3 py-2 fw-bold me-2">
+                        <i class="fa fa-file-excel me-1"></i> Export
+                    </button>
+                </form>
+                <a asp-page="./Issue" class="btn btn-new-entry px-3 py-2 fw-bold shadow-sm">
+                    <i class="fa fa-plus-circle me-1"> </i>New Entry
+                </a>
             </div>
-        }
+        </div>
     </div>
 
-    <!-- TABLE -->
-    <div id="tableWrapper" class="card shadow-floating table-container p-3">
-
+    <div class="table-card">
         <div class="table-responsive">
-            <table id="cardTable" class="table table-hover align-middle w-100">
+            <table id="auditTable" class="table table-custom align-middle">
                 <thead>
                     <tr>
-                        <th>ID / DATE</th>
-                        <th>PATIENT</th>
-                        <th>CARD</th>
-                        <th>CONTACT</th>
-                        <th class="text-center">ACTION</th>
+                        <th>Ref / Date</th>
+                        <th>Patient Identity</th>
+                        <th>Membership</th>
+                        <th>Contact & City</th>
+                        <th class="text-center">Action</th>
                     </tr>
                 </thead>
-
                 <tbody>
-                    @foreach (var item in records)
+                    @foreach (var item in Model.CardRecords)
                     {
-                        var plan = item.IntCard?.Vchcname?.ToUpper() ?? "GENERAL";
-
                         <tr>
                             <td>
-                                <b>#@item.IntRegId</b><br />
-                                <small>@item.Dtcreated?.ToString("dd-MMM-yyyy")</small>
+                                <div class="fw-800 text-primary">#@item.IntRegId</div>
+                                <div class="text-muted small fw-600">@item.Dtcreated?.ToString("dd MMM yyyy")</div>
                             </td>
-
                             <td>
-                                <b>@item.Vchname</b><br />
-                                <small>@item.VchUhidno</small>
+                                <div class="fw-800">@item.Vchname</div>
+                                <div class="text-muted small">UHID: @item.VchUhidno</div>
                             </td>
-
                             <td>
-                                <span class="badge-mini @(plan.Contains("GOLD") ? "bg-gold" : plan.Contains("SILVER") ? "bg-silver" : "bg-platinum")">
-                                    @plan
+                                <span class="badge-plan @(item.VchCardType == "GOLD" ? "bg-gold" : "bg-platinum")">
+                                    @item.VchCardType
                                 </span>
-                                <div class="text-success fw-bold">₹@item.IntCharges</div>
+                                <div class="fw-800 text-success mt-1">₹@item.IntCharges</div>
                             </td>
-
                             <td>
-                                <b>@item.Vchcontactno</b><br />
-                                <small>@item.Vchcity</small>
+                                <div class="small fw-600 mb-1"><i class="fa fa-phone me-2"></i>@item.Vchcontactno</div>
+                                <div class="small text-muted"><i class="fa fa-location-dot me-2"></i>@item.Vchcity</div>
                             </td>
-
                             <td class="text-center">
-                                <a asp-page="./Issue" asp-route-id="@item.IntRegId"
-                                   class="btn btn-primary btn-sm rounded-pill">
-                                    Edit
-                                </a>
+                                <a asp-page="./Issue" asp-route-id="@item.IntRegId" class="btn-edit">Edit</a>
                             </td>
                         </tr>
                     }
                 </tbody>
             </table>
         </div>
-
     </div>
 </div>
 
 @section Scripts {
-
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-
-<script>
-    $(document).ready(function () {
-
-        let table = $('#cardTable').DataTable({
-            order: [[0, "desc"]],
-            pageLength: 10,
-            deferRender: true,
-            stateSave: true,
-            processing: true,
-            dom: '<"d-flex justify-content-between mb-2"lf>rt<"d-flex justify-content-between mt-2"ip>',
-            language: {
-                search: "",
-                searchPlaceholder: "Search...",
-            }
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    
+    <script>
+        $(document).ready(function () {
+            $('#auditTable').DataTable({
+                "pageLength": 10,
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+                "order": [[0, "desc"]], // Sort by ID descending
+                "language": {
+                    "search": "",
+                    "searchPlaceholder": "Global Search...",
+                    "paginate": {
+                        "previous": "<i class='fa fa-chevron-left'></i>",
+                        "next": "<i class='fa fa-chevron-right'></i>"
+                    }
+                },
+                // Custom DOM to space out search and length menu
+                "dom": '<"d-flex justify-content-between align-items-center mb-3"lf>rt<"d-flex justify-content-between align-items-center mt-3"ip>'
+            });
         });
-
-        // Smooth load
-        setTimeout(() => {
-            $('#loader').hide();
-            $('#cardTable').fadeIn(200);
-        }, 300);
-
-        $('.dataTables_filter input')
-            .addClass('form-control form-control-sm bg-light border-0 rounded-pill')
-            .css('width', '220px');
-
-    });
-</script>
-
+    </script>
 }

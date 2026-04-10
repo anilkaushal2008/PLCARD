@@ -23,5 +23,5 @@ public partial class TblSyncQueue
 
     public string VchErrorLog { get; set; }
 
-    public virtual TblServerRegistry IntServer { get; set; }
+    public virtual ServerMaster IntServer { get; set; }
 }
