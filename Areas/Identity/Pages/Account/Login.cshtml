@@ -2,125 +2,143 @@
 @model LoginModel
 @{
     ViewData["Title"] = "Secure Login";
+    // This removes the header and footer from _Layout.cshtml
+    Layout = null; 
 }
-<link rel="icon" type="image/png" href="~/images/Header-Logo.png" />
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - IndusGroup</title>
+    
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link rel="icon" type="image/png" href="~/images/Header-Logo.png" />
+
+    <style>
+        /* Full screen centering without header/footer */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        .login-container {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Static Card - Hover Removed */
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 1.5rem;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            transition: none !important;
+            transform: none !important;
+        }
+
+        .login-card:hover {
+            transform: none !important;
+        }
+
+        /* Input Visibility Fixes */
+        .custom-input {
+            background-color: #ffffff !important;
+            border: 2px solid #cbd5e1 !important;
+            border-radius: 0.75rem !important;
+            color: #1e293b !important;
+        }
+
+        .custom-input:focus {
+            border-color: #0d6efd !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1) !important;
+        }
+
+        .login-btn {
+            background: linear-gradient(45deg, #1e40af, #0d6efd);
+            border: none;
+            transition: opacity 0.3s;
+        }
+
+        .login-btn:hover {
+            opacity: 0.9;
+            transform: none !important;
+        }
+
+        .ls-wide { letter-spacing: 2px; }
+        .tiny { font-size: 0.75rem; }
+        .login-brand-img { max-height: 60px; width: auto; }
+    </style>
+</head>
+<body>
+
 <div class="login-container">
-    <div class="row justify-content-center align-items-center min-vh-100 mx-0">
-        <div class="col-md-5 col-lg-4">
-            <div class="card login-card border-0 shadow-lg animate__animated animate__fadeInUp">
-                <div class="card-body p-5">
-                    
-                    <div class="text-center mb-5">
-    <div class="brand-logo mb-3">
-        @* Adjust the height here to make it look perfect for your specific logo *@
-        <img src="~/images/Header-Logo.png" alt="IndusGroup Logo" class="login-brand-img" />
-    </div>
-    <h2 class="fw-bold text-dark">IndusGroup</h2>
-    <p class="text-muted small text-uppercase fw-bold ls-wide">Management Portal</p>
-</div>
-
-                    <form id="account" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3 text-center"></div>
-
-                        <div class="form-floating mb-3">
-                            <input asp-for="Input.Email" class="form-control custom-input" autocomplete="username" placeholder="name@example.com" />
-                            <label asp-for="Input.Email" class="text-muted">
-                                <i class="fa fa-envelope me-2"></i>Email Address
-                            </label>
-                            <span asp-validation-for="Input.Email" class="text-danger tiny"></span>
-                        </div>
-
-                        <div class="form-floating mb-4">
-                            <input asp-for="Input.Password" class="form-control custom-input" autocomplete="current-password" placeholder="password" />
-                            <label asp-for="Input.Password" class="text-muted">
-                                <i class="fa fa-lock me-2"></i>Password
-                            </label>
-                            <span asp-validation-for="Input.Password" class="text-danger tiny"></span>
-                        </div>
-
-                        <div class="d-flex justify-content-between align-items-center mb-4 px-1">
-                            <div class="form-check">
-                                <input class="form-check-input" asp-for="Input.RememberMe" />
-                                <label asp-for="Input.RememberMe" class="form-check-label small text-muted">
-                                    Remember me
-                                </label>
-                            </div>
-                            <a id="forgot-password" asp-page="./ForgotPassword" class="small text-primary text-decoration-none fw-bold">
-                                Forgot?
-                            </a>
-                        </div>
-
-                        <button id="login-submit" type="submit" class="btn btn-primary w-100 py-3 rounded-3 shadow fw-bold login-btn">
-                            Sign In <i class="fa fa-arrow-right-to-bracket ms-2"></i>
-                        </button>
-                    </form>
-
+    <div class="card login-card border-0 shadow-lg animate__animated animate__fadeInUp">
+        <div class="card-body p-5">
+            
+            <div class="text-center mb-5">
+                <div class="brand-logo mb-3">
+                    <img src="~/images/Header-Logo.png" alt="IndusGroup Logo" class="login-brand-img" />
                 </div>
-                <div class="card-footer bg-light border-0 py-3 text-center text-muted small">
-                    <i class="fa fa-info-circle me-1"></i> Authorized Personnel Only
-                </div>
+                <h2 class="fw-bold text-dark">IndusGroup</h2>
+                <p class="text-muted small text-uppercase fw-bold ls-wide">Management Portal</p>
             </div>
+
+            <form id="account" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3 text-center"></div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.Email" class="form-control custom-input" autocomplete="username" placeholder="name@example.com" />
+                    <label asp-for="Input.Email" class="text-muted">
+                        <i class="fa fa-envelope me-2"></i>Email Address
+                    </label>
+                    <span asp-validation-for="Input.Email" class="text-danger tiny"></span>
+                </div>
+
+                <div class="form-floating mb-4">
+                    <input asp-for="Input.Password" class="form-control custom-input" autocomplete="current-password" placeholder="password" />
+                    <label asp-for="Input.Password" class="text-muted">
+                        <i class="fa fa-lock me-2"></i>Password
+                    </label>
+                    <span asp-validation-for="Input.Password" class="text-danger tiny"></span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-4 px-1">
+                    <div class="form-check">
+                        <input class="form-check-input" asp-for="Input.RememberMe" />
+                        <label asp-for="Input.RememberMe" class="form-check-label small text-muted">
+                            Remember me
+                        </label>
+                    </div>
+                    <a id="forgot-password" asp-page="./ForgotPassword" class="small text-primary text-decoration-none fw-bold">
+                        Forgot?
+                    </a>
+                </div>
+
+                <button id="login-submit" type="submit" class="btn btn-primary w-100 py-3 rounded-3 shadow fw-bold login-btn">
+                    Sign In <i class="fa fa-arrow-right-to-bracket ms-2"></i>
+                </button>
+            </form>
+        </div>
+        <div class="card-footer bg-light border-0 py-3 text-center text-muted small">
+            <i class="fa fa-info-circle me-1"></i> Authorized Personnel Only
         </div>
     </div>
 </div>
 
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<partial name="_ValidationScriptsPartial" />
 
-<style>
-    /* Gradient Background */
-    .login-container {
-        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-        min-height: 100vh;
-        width: 100%;
-    }
-
-    /* Card Styling */
-    .login-card {
-        border-radius: 1.5rem;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        transition: all 0.4s ease;
-    }
-
-    .login-card:hover {
-        transform: translateY(-5px);
-    }
-
-    /* Animation */
-    .brand-logo i {
-        filter: drop-shadow(0 4px 6px rgba(13, 110, 253, 0.2));
-    }
-
-    /* Input Customization */
-    .custom-input {
-        background-color: #f1f5f9 !important;
-        border: 2px solid transparent !important;
-        border-radius: 0.75rem !important;
-        padding-left: 1rem;
-        transition: 0.3s;
-    }
-
-    .custom-input:focus {
-        background-color: #fff !important;
-        border-color: #0d6efd !important;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1) !important;
-    }
-
-    /* Button Styling */
-    .login-btn {
-        background: linear-gradient(45deg, #1e40af, #0d6efd);
-        border: none;
-        letter-spacing: 0.5px;
-        transition: 0.3s;
-    }
-
-    .login-btn:hover {
-        background: linear-gradient(45deg, #1d4ed8, #2563eb);
-        box-shadow: 0 8px 15px rgba(13, 110, 253, 0.3);
-    }
-
-    .ls-wide { letter-spacing: 2px; }
-    .tiny { font-size: 0.75rem; }
-</style>
+</body>
+</html>

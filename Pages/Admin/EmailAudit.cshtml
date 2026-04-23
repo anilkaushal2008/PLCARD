@@ -1,0 +1,188 @@
+﻿@page
+@model PLCARD.Pages.Admin.EmailAuditModel
+@{
+    ViewData["Title"] = "Email Delivery Audit";
+}
+
+<style>
+    /* 1. Dashboard Layout & Typography */
+    .dashboard-title { letter-spacing: -0.5px; color: #1e293b; }
+
+    /* 2. Premium Table Card with Extra Deep Static Shadows (No Hover) */
+    .modern-table-container {
+        background: #fff;
+        border-radius: 20px;
+        overflow: hidden;
+        margin-top: 20px;
+        /* Triple-Layered Shadow - Matching Hub Registry & Sync Queue */
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 40px 60px -15px rgba(0, 0, 0, 0.1) !important;
+        margin-bottom: 70px;
+        border: 1px solid rgba(0,0,0,0.03);
+    }
+
+    /* 3. Table Styling with Blue Gradient Header */
+    .table-modern thead th {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        color: #fff;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        padding: 20px 25px;
+        border: none;
+        letter-spacing: 0.8px;
+    }
+    
+    .table-modern td {
+        padding: 18px 25px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .table-modern tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* 4. Status Pill Styling */
+    .status-badge {
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        font-size: 0.65rem;
+        padding: 6px 14px;
+        border-radius: 30px;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .bg-success-subtle { background: #f0fdf4; color: #166534; border: 1px solid #dcfce7; }
+    .bg-danger-subtle { background: #fef2f2; color: #991b1b; border: 1px solid #fee2e2; }
+
+    /* 5. Audit Trace Box (Handles SocketException/No such host known) */
+    .error-trace {
+        font-family: 'JetBrains Mono', 'Consolas', monospace;
+        font-size: 0.75rem;
+        color: #b91c1c;
+        max-width: 250px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        background: #fff1f2;
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: 1px solid #fee2e2;
+        display: inline-block;
+    }
+</style>
+
+<div class="container-fluid mt-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold dashboard-title mb-0">Email Delivery Audit</h2>
+            <p class="text-muted small mb-0">Indus Healthcare Group: Monitoring Communication & Notifications</p>
+        </div>
+        <div class="text-end">
+             <span class="badge bg-light text-dark border rounded-pill px-3 py-2 shadow-sm">
+                <i class="fa fa-history me-1 text-primary"></i> Last 500 Dispatch Logs
+            </span>
+        </div>
+    </div>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-info border-0 shadow-sm rounded-3 py-3 mb-4 animate__animated animate__fadeInDown">
+            <div class="d-flex align-items-center">
+                <i class="fa fa-paper-plane me-3 h4 mb-0 opacity-75"></i>
+                <div>
+                    <h6 class="mb-0 fw-bold">System Notification</h6>
+                    <small>@TempData["Message"]</small>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="modern-table-container">
+        <div class="table-responsive">
+            <table class="table table-modern align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Recipient</th>
+                        <th>Target Corporate</th>
+                        <th>Status</th>
+                        <th>Timestamp</th>
+                        <th>Audit Trace</th>
+                        <th class="text-end pe-4">Command</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.EmailLogsList != null && Model.EmailLogsList.Any())
+                    {
+                        foreach (var log in Model.EmailLogsList)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold text-dark">@log.RecipientEmail</div>
+                                    <small class="text-muted text-uppercase" style="font-size: 0.6rem; letter-spacing: 0.5px;">Authorized Partner</small>
+                                </td>
+                                <td>
+                                    <span class="fw-semibold text-dark">@log.CompanyName</span>
+                                </td>
+                                <td>
+                                    @if (log.SentStatus == "Success")
+                                    {
+                                        <span class="status-badge bg-success-subtle">
+                                            <i class="fa fa-check-circle"></i> DELIVERED
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge bg-danger-subtle">
+                                            <i class="fa fa-exclamation-triangle"></i> FAILED
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="small fw-bold text-dark">@log.SentAt?.ToString("dd-MMM-yyyy")</div>
+                                    <div class="text-muted" style="font-size: 0.7rem;">@log.SentAt?.ToString("hh:mm tt")</div>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(log.ErrorMessage))
+                                    {
+                                        <div class="error-trace" title="@log.ErrorMessage">
+                                            <i class="fa fa-bug me-1 opacity-50"></i> @log.ErrorMessage
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-success small fw-bold"><i class="fa fa-check-double me-1"></i> Path Cleared</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    @* Manual Resend Trigger *@
+                                    <form method="post" asp-page-handler="Resend" 
+                                          asp-route-companyName="@log.CompanyName" 
+                                          asp-route-logId="@log.Id"
+                                          asp-route-recipientEmail="@log.RecipientEmail">
+                                        <button type="submit" class="btn btn-sm btn-dark rounded-pill px-3 fw-bold shadow-sm">
+                                            <i class="fa fa-rotate-right me-1 small opacity-75"></i> RESEND
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <div class="opacity-25">
+                                    <i class="fa fa-mail-bulk fa-4x mb-3 d-block"></i>
+                                </div>
+                                <h6 class="fw-bold">No Delivery Logs Found</h6>
+                                <p class="small mb-0">Audit session is currently empty for the selected period.</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

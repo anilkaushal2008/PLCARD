@@ -1,181 +1,214 @@
 @page
 @model PLCARD.Pages.Masters.CardMaster.IndexModel
 @{
-    ViewData["Title"] = "Card Master Management";
+    ViewData["Title"] = "Master Card Setup";
 }
 
 <style>
-    /* DEEP MODERN SHADOWS */
-    .shadow-heavy {
-        box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.15) !important;
-        border: none !important;
+    body {
+        background: #f1f5ff;
+        font-family: 'Inter', sans-serif;
     }
 
-    /* Custom style for the red asterisk */
-    .required-star {
-        color: #dc3545;
-        font-weight: bold;
-        margin-left: 2px;
+    /* FIXED HEADER TWEAK */
+    header, .navbar {
+        position: fixed !important;
+        top: 0; width: 100%; z-index: 1050;
+        background: white !important;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
 
-    /* Full-width table radius and overflow fixes */
-    .table-responsive {
-        width: 100%;
-        border-radius: 0 0 12px 12px;
+    .setup-wrapper {
+        margin-top: 85px;
+        padding: 20px 30px;
     }
 
-    /* Form and Label Styling */
-    .discount-label {
-        font-size: 0.72rem;
-        font-weight: 700;
-        color: #495057;
+    /* MASTER HEADER */
+    .master-header {
+        background: linear-gradient(135deg, #4361ee, #6366f1);
+        border-radius: 16px;
+        padding: 25px 30px;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 10px 25px rgba(67, 97, 238, 0.2);
+    }
+
+    /* CLEAN DATA PANEL */
+    .master-panel {
+        background: white;
+        border-radius: 16px;
+        margin-top: 25px;
+        padding: 10px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+        border: 1px solid #eef0f7;
+    }
+
+    /* MINIMAL TABLE HEADERS */
+    .table thead th {
+        background-color: #f8faff !important;
+        color: #4361ee !important; 
+        font-size: 0.75rem;
         text-transform: uppercase;
-        margin-bottom: 3px;
+        letter-spacing: 1px;
+        font-weight: 800;
+        padding: 15px 20px !important;
+        border: none;
     }
 
-    .form-control:invalid {
-        border-color: #dee2e6;
+    .table tbody td {
+        padding: 20px !important;
+        border-bottom: 1px solid #f1f4f9;
+        color: #2b3674;
+        font-weight: 600;
     }
+
+    .plan-title { font-size: 1rem; color: #1b2559; }
+    .plan-cost { color: #22c55e; font-weight: 800; }
+
+    /* TOGGLE SWITCH */
+    .switch { position: relative; display: inline-block; width: 42px; height: 22px; }
+    .switch input { display:none; }
+    .slider {
+        position: absolute; cursor: pointer; background-color: #cbd5e1;
+        border-radius: 34px; top: 0; left: 0; right: 0; bottom: 0; transition: .3s;
+    }
+    .slider:before {
+        position: absolute; content: ""; height: 16px; width: 16px;
+        left: 3px; bottom: 3px; background-color: white; border-radius: 50%; transition: .3s;
+    }
+    input:checked + .slider { background-color: #4361ee; }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    /* EDIT BUTTON */
+    .setup-btn {
+        background: #f0f3ff;
+        color: #4361ee;
+        border-radius: 10px;
+        border: none;
+        padding: 8px 16px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        transition: 0.2s;
+    }
+    .setup-btn:hover { background: #4361ee; color: white; }
+
+    /* MODAL INPUTS */
+    .form-label { font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; }
+    .form-control { border-radius: 10px; background: #f8faff; border: 1px solid #e2e8f0; padding: 10px 15px; font-weight: 600; }
+    .form-control:focus { background: white; border-color: #4361ee; box-shadow: none; }
 </style>
 
-<div class="container-fluid py-4 px-4">
-    
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="setup-wrapper">
+    <div class="master-header">
         <div>
-            <h2 class="fw-bold mb-1"><i class="fa fa-layer-group text-primary me-2"></i>Individual Card Master</h2>
-            <p class="text-muted mb-0 small ps-5">Configure pricing and benefits for patient health cards</p>
+            <h3 class="mb-0 fw-bold">Master Card Setup</h3>
+            <p class="mb-0 opacity-75 small">Define base plans and service-wise percentage configurations</p>
         </div>
-        <button type="button" class="btn btn-primary shadow-sm rounded-pill px-4 py-2 fw-bold" onclick="openModal(0, '', 0, 0, 0, 0, 0, 0, 0, 0)">
-            <i class="fa fa-plus-circle me-1"></i> Add New Card Plan
+        <button class="btn btn-light rounded-pill px-4 fw-bold text-primary" onclick="openModal(0,'',0,0,0,0,0,0,0,0)">
+            <i class="fa fa-plus-circle me-2"></i>Add New Master
         </button>
     </div>
 
-    <div class="card shadow-heavy border-0 mb-5 mt-2" style="border-radius: 12px;">
-        <div class="card-body p-0 overflow-hidden">
-            <div class="table-responsive">
-                <table id="cardMasterTable" class="table table-hover align-middle mb-0">
-                    <thead class="table-dark text-nowrap">
+    <div class="master-panel">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="masterTable">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Master Plan</th>
+                        <th>Standard Cost</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Configuration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.CardPlans)
+                    {
                         <tr>
-                            <th class="ps-4 py-3">Plan Name</th>
-                            <th>Cost</th>
-                            <th>OPD%</th>
-                            <th>IPD%</th>
-                            <th>Lab%</th>
-                            <th>Phar%</th>
-                            <th>Diag%</th>
-                            <th>Home%</th>
-                            <th>Amb%</th>
-                            <th class="text-center">Status</th>
-                            <th class="text-center pe-4">Actions</th>
+                            <td class="ps-4 plan-title">@item.Vchcname</td>
+                            <td class="plan-cost">₹@item.Intcostcard</td>
+                            <td class="text-center">
+                                <label class="switch">
+                                    <input type="checkbox" @(item.BitActive ? "checked" : "") onchange="toggleStatus(@item.IntCard, this)">
+                                    <span class="slider"></span>
+                                </label>
+                            </td>
+                            <td class="text-center">
+                                <button class="setup-btn" onclick="openModal(@item.IntCard,'@item.Vchcname',@item.Intcostcard,@item.Flopd,@item.Flipd,@item.Fllab,@item.Flpharmacy,@item.Fldiagno,@item.Flhomecare,@item.Flambulanceipd)">
+                                    <i class="fa fa-cog me-1"></i> Setup Services
+                                </button>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model.CardPlans)
-                        {
-                            <tr>
-                                <td class="ps-4"><strong>@item.Vchcname</strong></td>
-                                <td class="fw-bold text-success">₹@item.Intcostcard</td>
-                                <td>@item.Flopd%</td>
-                                <td>@item.Flipd%</td>
-                                <td>@item.Fllab%</td>
-                                <td>@item.Flpharmacy%</td>
-                                <td>@item.Fldiagno%</td>
-                                <td>@item.Flhomecare%</td>
-                                <td>@item.Flambulanceipd%</td>
-                                <td class="text-center">
-                                    <span class="badge @(item.BitActive ? "bg-success" : "bg-secondary") px-3 py-2 shadow-sm">
-                                        @(item.BitActive ? "Active" : "Inactive")
-                                    </span>
-                                </td>
-                                <td class="text-center pe-4">
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <button class="btn btn-sm btn-outline-primary"
-                                                onclick="openModal(@item.IntCard, '@item.Vchcname', @item.Intcostcard, @item.Flopd, @item.Flipd, @item.Fllab, @item.Flpharmacy, @item.Fldiagno, @item.Flhomecare, @item.Flambulanceipd)">
-                                            <i class="fa fa-edit"></i>
-                                        </button>
-                                        
-                                        <form method="post" asp-page-handler="ToggleStatus" asp-route-id="@item.IntCard" class="d-inline">
-                                            <button type="submit" class="btn btn-sm @(item.BitActive ? "btn-outline-warning" : "btn-outline-success")">
-                                                <i class="fa @(item.BitActive ? "fa-ban" : "fa-check")"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
+    <br />
+    <br />
+    <br />
 </div>
 
-<div class="modal fade" id="upsertModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="setupModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content shadow-heavy border-0">
-            <form method="post" asp-page-handler="Save" id="upsertForm">
-                <div class="modal-header bg-dark text-white border-0 py-3">
-                    <h5 class="modal-title fw-bold" id="modalTitle">Card Plan Details</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+            <form method="post" asp-page-handler="Save">
+                <div class="modal-header px-4 pt-4 border-0">
+                    <h4 class="fw-bold text-dark mb-0" id="modalTitle">Service Configuration</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-4">
-                    <input type="hidden" asp-for="CardModel.IntCard" id="hiddenId" />
+                <div class="modal-body px-4">
+                    <input type="hidden" id="hiddenId" name="CardModel.IntCard" />
                     
-                    <div class="row">
-                        <div class="col-md-8 mb-4">
-                            <label class="form-label fw-bold">Plan Name <span class="required-star">*</span></label>
-                            <input asp-for="CardModel.Vchcname" id="planNameInput" class="form-control form-control-lg bg-light border-0 shadow-sm" placeholder="e.g. GOLD" required />
-                            <span asp-validation-for="CardModel.Vchcname" class="text-danger small"></span>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-8">
+                            <label class="form-label">Master Plan Name</label>
+                            <input id="planName" name="CardModel.Vchcname" class="form-control" placeholder="e.g. PLATINUM" required />
                         </div>
-                        <div class="col-md-4 mb-4">
-                            <label class="form-label fw-bold">Card Cost <span class="required-star">*</span></label>
-                            <div class="input-group input-group-lg shadow-sm">
-                                <span class="input-group-text bg-light border-0">₹</span>
-                                <input asp-for="CardModel.Intcostcard" id="costInput" type="number" class="form-control bg-light border-0" required min="0" />
-                            </div>
-                            <span asp-validation-for="CardModel.Intcostcard" class="text-danger small"></span>
+                        <div class="col-md-4">
+                            <label class="form-label">Base Cost (₹)</label>
+                            <input id="cost" name="CardModel.Intcostcard" type="number" class="form-control" required />
                         </div>
                     </div>
 
-                    <hr class="my-4 opacity-10" />
-                    <h6 class="text-muted mb-3 fw-bold small"><i class="fa fa-percentage me-1 text-primary"></i> DISCOUNT CONFIGURATION (REQUIRED)</h6>
-                    
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="discount-label">OPD %</label>
-                            <input asp-for="CardModel.Flopd" id="opdInput" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required min="0" max="100" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="discount-label">IPD %</label>
-                            <input asp-for="CardModel.Flipd" id="ipdInput" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required min="0" max="100" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="discount-label">Lab %</label>
-                            <input asp-for="CardModel.Fllab" id="labInput" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required min="0" max="100" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="discount-label">Pharmacy %</label>
-                            <input asp-for="CardModel.Flpharmacy" id="pharInput" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required min="0" max="100" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="discount-label">Diagnostics %</label>
-                            <input asp-for="CardModel.Fldiagno" id="diagInput" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required min="0" max="100" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="discount-label">Home Care %</label>
-                            <input asp-for="CardModel.Flhomecare" id="homeInput" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required min="0" max="100" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="discount-label">Ambulance IPD %</label>
-                            <input asp-for="CardModel.Flambulanceipd" id="ambInput" type="number" step="0.01" class="form-control bg-light border-0 shadow-sm" required min="0" max="100" />
+                    <div class="p-3 rounded-4" style="background: #f1f5ff;">
+                        <h6 class="fw-bold text-primary small mb-3">PERCENTAGE SETUP PER SERVICE</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">OPD %</label>
+                                <input id="opd" name="CardModel.Flopd" type="number" step="0.01" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">IPD %</label>
+                                <input id="ipd" name="CardModel.Flipd" type="number" step="0.01" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Laboratory %</label>
+                                <input id="lab" name="CardModel.Fllab" type="number" step="0.01" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Pharmacy %</label>
+                                <input id="phar" name="CardModel.Flpharmacy" type="number" step="0.01" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Diagnostics %</label>
+                                <input id="diag" name="CardModel.Fldiagno" type="number" step="0.01" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Home Care %</label>
+                                <input id="home" name="CardModel.Flhomecare" type="number" step="0.01" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Ambulance %</label>
+                                <input id="amb" name="CardModel.Flambulanceipd" type="number" step="0.01" class="form-control" />
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-0 bg-light py-3">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-success rounded-pill px-5 shadow-sm fw-bold">
-                        <i class="fa fa-save me-1"></i> Save Plan Record
-                    </button>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light px-4 rounded-pill fw-bold" data-bs-dismiss="modal">Discard</button>
+                    <button type="submit" class="btn btn-primary px-5 rounded-pill fw-bold shadow-sm">Save Master Configuration</button>
                 </div>
             </form>
         </div>
@@ -183,42 +216,42 @@
 </div>
 
 @section Scripts {
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-    <partial name="_ValidationScriptsPartial" />
-
+    
     <script>
         $(document).ready(function () {
-        $('#cardMasterTable').DataTable({
-        "pageLength": 10,
-        "responsive": true,
-        "language": {
-        "search": "_INPUT_",
-        "searchPlaceholder": "Quick search cards..."
-        }
-        });
+            $('#masterTable').DataTable({
+                "pageLength": 10,
+                "dom": '<"d-flex justify-content-between align-items-center mb-3"f>t<"d-flex justify-content-between align-items-center mt-3"ip>',
+                "language": { "search": "", "searchPlaceholder": "Search Masters..." }
+            });
         });
 
         function openModal(id, name, cost, opd, ipd, lab, phar, diag, home, amb) {
-        var form = $('#upsertForm');
-        form.validate().resetForm();
-        form.find('.is-invalid').removeClass('is-invalid');
+            $('#hiddenId').val(id);
+            $('#planName').val(name);
+            $('#cost').val(cost);
+            $('#opd').val(opd);
+            $('#ipd').val(ipd);
+            $('#lab').val(lab);
+            $('#phar').val(phar);
+            $('#diag').val(diag);
+            $('#home').val(home);
+            $('#amb').val(amb);
 
-        // Fill values
-        document.getElementById('hiddenId').value = id;
-        document.getElementById('planNameInput').value = name;
-        document.getElementById('costInput').value = cost || 0;
-        document.getElementById('opdInput').value = opd || 0;
-        document.getElementById('ipdInput').value = ipd || 0;
-        document.getElementById('labInput').value = lab || 0;
-        document.getElementById('pharInput').value = phar || 0;
-        document.getElementById('diagInput').value = diag || 0;
-        document.getElementById('homeInput').value = home || 0;
-        document.getElementById('ambInput').value = amb || 0;
+            $('#modalTitle').text(id == 0 ? "New Master Card" : "Setup: " + name);
+            new bootstrap.Modal(document.getElementById('setupModal')).show();
+        }
 
-        document.getElementById('modalTitle').innerText = id === 0 ? "Add New Card Plan" : "Edit Card Plan: " + name;            
-        var myModal = new bootstrap.Modal(document.getElementById('upsertModal'));
-        myModal.show();
+        function toggleStatus(id, el) {
+            $.post('?handler=ToggleStatus', { id: id }, function (res) {
+                // Success
+            }).fail(function () {
+                alert("Status sync failed");
+                el.checked = !el.checked;
+            });
         }
     </script>
 }

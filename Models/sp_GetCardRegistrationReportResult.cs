@@ -8,21 +8,21 @@ namespace PLCARD.Models
 {
     public partial class sp_GetCardRegistrationReportResult
     {
-        public DateTime? dtcreated { get; set; }
+        public int IntRegId { get; set; }
+        public DateTime? Dtcreated { get; set; }
         [StringLength(20)]
-        public string vchUhidno { get; set; }
+        public string VchUhidno { get; set; }
         [StringLength(50)]
-        public string vchname { get; set; }
+        public string Vchname { get; set; }
         [StringLength(50)]
-        public string vchCardType { get; set; }
+        public string VchCardType { get; set; }
         [StringLength(13)]
-        public string vchcontactno { get; set; }
+        public string Vchcontactno { get; set; }
         [StringLength(10)]
-        public string vchsex { get; set; }
-        public int? intage { get; set; }
-        public int? intCharges { get; set; }
-        public int intRegID { get; set; }
+        public string Vchsex { get; set; }
+        public int? Intage { get; set; }
+        public int? IntCharges { get; set; }
         [StringLength(50)]
-        public string vchcity { get; set; }
+        public string Vchcity { get; set; }
     }
 }

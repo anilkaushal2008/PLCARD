@@ -25,6 +25,10 @@ public partial class PLCARDContext : DbContext
 
     public virtual DbSet<AspNetUsers> AspNetUsers { get; set; }
 
+    public virtual DbSet<EmailLogs> EmailLogs { get; set; }
+
+    public virtual DbSet<EmailMasters> EmailMasters { get; set; }
+
     public virtual DbSet<ServerMaster> ServerMaster { get; set; }
 
     public virtual DbSet<ServiceTypeMaster> ServiceTypeMaster { get; set; }
@@ -45,32 +49,26 @@ public partial class PLCARDContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.UseCollation("SQL_1xCompat_CP850_CI_AS");
-
         modelBuilder.Entity<AspNetRoleClaims>(entity =>
         {
-            entity.HasIndex(e => e.RoleId, "IX_AspNetRoleClaims_RoleId");
-
-            entity.Property(e => e.RoleId).IsRequired();
+            entity.Property(e => e.RoleId)
+                .IsRequired()
+                .HasMaxLength(450);
 
             entity.HasOne(d => d.Role).WithMany(p => p.AspNetRoleClaims).HasForeignKey(d => d.RoleId);
         });
 
         modelBuilder.Entity<AspNetRoles>(entity =>
         {
-            entity.HasIndex(e => e.NormalizedName, "RoleNameIndex")
-                .IsUnique()
-                .HasFilter("([NormalizedName] IS NOT NULL)");
-
             entity.Property(e => e.Name).HasMaxLength(256);
             entity.Property(e => e.NormalizedName).HasMaxLength(256);
         });
 
         modelBuilder.Entity<AspNetUserClaims>(entity =>
         {
-            entity.HasIndex(e => e.UserId, "IX_AspNetUserClaims_UserId");
-
-            entity.Property(e => e.UserId).IsRequired();
+            entity.Property(e => e.UserId)
+                .IsRequired()
+                .HasMaxLength(450);
 
             entity.HasOne(d => d.User).WithMany(p => p.AspNetUserClaims).HasForeignKey(d => d.UserId);
         });
@@ -79,11 +77,11 @@ public partial class PLCARDContext : DbContext
         {
             entity.HasKey(e => new { e.LoginProvider, e.ProviderKey });
 
-            entity.HasIndex(e => e.UserId, "IX_AspNetUserLogins_UserId");
-
             entity.Property(e => e.LoginProvider).HasMaxLength(128);
             entity.Property(e => e.ProviderKey).HasMaxLength(128);
-            entity.Property(e => e.UserId).IsRequired();
+            entity.Property(e => e.UserId)
+                .IsRequired()
+                .HasMaxLength(450);
 
             entity.HasOne(d => d.User).WithMany(p => p.AspNetUserLogins).HasForeignKey(d => d.UserId);
         });
@@ -100,12 +98,6 @@ public partial class PLCARDContext : DbContext
 
         modelBuilder.Entity<AspNetUsers>(entity =>
         {
-            entity.HasIndex(e => e.NormalizedEmail, "EmailIndex");
-
-            entity.HasIndex(e => e.NormalizedUserName, "UserNameIndex")
-                .IsUnique()
-                .HasFilter("([NormalizedUserName] IS NOT NULL)");
-
             entity.Property(e => e.Email).HasMaxLength(256);
             entity.Property(e => e.NormalizedEmail).HasMaxLength(256);
             entity.Property(e => e.NormalizedUserName).HasMaxLength(256);
@@ -119,13 +111,44 @@ public partial class PLCARDContext : DbContext
                     j =>
                     {
                         j.HasKey("UserId", "RoleId");
-                        j.HasIndex(new[] { "RoleId" }, "IX_AspNetUserRoles_RoleId");
                     });
+        });
+
+        modelBuilder.Entity<EmailLogs>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__EmailLog__3214EC076B29C31E");
+
+            entity.Property(e => e.CompanyName)
+                .IsRequired()
+                .HasMaxLength(200);
+            entity.Property(e => e.RecipientEmail)
+                .IsRequired()
+                .HasMaxLength(255);
+            entity.Property(e => e.SentAt).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.SentStatus)
+                .IsRequired()
+                .HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<EmailMasters>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__EmailMas__3214EC079E8FD548");
+
+            entity.HasIndex(e => e.EmailAddress, "UQ__EmailMas__49A147404C8DDDE4").IsUnique();
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.EmailAddress)
+                .IsRequired()
+                .HasMaxLength(255);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.RecipientName)
+                .IsRequired()
+                .HasMaxLength(150);
         });
 
         modelBuilder.Entity<ServerMaster>(entity =>
         {
-            entity.HasKey(e => e.IntServerId).HasName("PK__ServerMa__8AF32E92FF25E16A");
+            entity.HasKey(e => e.IntServerId).HasName("PK__ServerMa__8AF32E92D810EED2");
 
             entity.Property(e => e.BitIsActive).HasDefaultValue(true);
             entity.Property(e => e.DtCreated)
@@ -144,7 +167,7 @@ public partial class PLCARDContext : DbContext
 
         modelBuilder.Entity<ServiceTypeMaster>(entity =>
         {
-            entity.HasKey(e => e.ServiceTypeId).HasName("PK__ServiceT__8ADFAA6C6229EF33");
+            entity.HasKey(e => e.ServiceTypeId).HasName("PK__ServiceT__8ADFAA6CA0513413");
 
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -384,7 +407,7 @@ public partial class PLCARDContext : DbContext
 
         modelBuilder.Entity<TblCorporatePlanMaster>(entity =>
         {
-            entity.HasKey(e => e.IntPlanId).HasName("PK__TblCorpo__60CE315AA3A526AA");
+            entity.HasKey(e => e.IntPlanId).HasName("PK__TblCorpo__60CE315AB4C11086");
 
             entity.Property(e => e.BitActive).HasDefaultValue(true);
             entity.Property(e => e.BitDeleted).HasDefaultValue(false);
@@ -414,9 +437,9 @@ public partial class PLCARDContext : DbContext
 
         modelBuilder.Entity<TblGlobalSettings>(entity =>
         {
-            entity.HasKey(e => e.IntSettingId).HasName("PK__TblGloba__B1E6D2309DCE642D");
+            entity.HasKey(e => e.IntSettingId).HasName("PK__TblGloba__B1E6D2303D75CE12");
 
-            entity.HasIndex(e => e.VchSettingKey, "UQ__TblGloba__F40814258359E342").IsUnique();
+            entity.HasIndex(e => e.VchSettingKey, "UQ__TblGloba__F4081425E3325E8F").IsUnique();
 
             entity.Property(e => e.DtUpdated)
                 .HasDefaultValueSql("(getdate())")
@@ -427,7 +450,7 @@ public partial class PLCARDContext : DbContext
 
         modelBuilder.Entity<TblHubServiceEndpoints>(entity =>
         {
-            entity.HasKey(e => e.IntEndpointId).HasName("PK__TblHubSe__2678D9AE23AFA6FA");
+            entity.HasKey(e => e.IntEndpointId).HasName("PK__TblHubSe__2678D9AEC8BCAA7B");
 
             entity.Property(e => e.DtLastUpdated)
                 .HasDefaultValueSql("(getdate())")
@@ -446,9 +469,7 @@ public partial class PLCARDContext : DbContext
 
         modelBuilder.Entity<TblSyncQueue>(entity =>
         {
-            entity.HasKey(e => e.IntQueueId).HasName("PK__TblSyncQ__78869AF6D82396EA");
-
-            entity.HasIndex(e => new { e.IntServerId, e.BitProcessed }, "IX_SyncQueue_Pending").HasFilter("([BitProcessed]=(0))");
+            entity.HasKey(e => e.IntQueueId).HasName("PK__TblSyncQ__78869AF62CAA7990");
 
             entity.Property(e => e.BitProcessed).HasDefaultValue(false);
             entity.Property(e => e.DtAdded)

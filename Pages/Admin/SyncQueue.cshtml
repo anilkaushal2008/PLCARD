@@ -5,53 +5,82 @@
 }
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-    .queue-card { 
-        border-radius: 20px; 
+    /* 1. Dashboard Layout & Typography */
+    .dashboard-title { letter-spacing: -0.5px; color: #1e293b; }
+
+    /* 2. Premium Card with Extra Deep Static Shadows (No Hover) */
+    .modern-table-container { 
         background: #ffffff; 
-        border: 1px solid #f1f5f9; 
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); 
+        border-radius: 20px; 
+        overflow: hidden;
+        margin-top: 20px;
+        /* Triple-Layered "Floating" Shadow - Fixed (No Hover) */
+        box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 40px 60px -15px rgba(0, 0, 0, 0.1) !important;
+        border: 1px solid rgba(0,0,0,0.03);
+        padding: 25px;
     }
-    .dashboard-title { color: #1e293b; font-size: 1.75rem; }
+
+    /* 3. Table Styling with Gradient Header */
+    .table-modern thead th { 
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important; 
+        color: #fff !important; 
+        font-size: 0.75rem; 
+        text-transform: uppercase; 
+        padding: 20px 15px !important; 
+        border: none !important; 
+        letter-spacing: 0.8px; 
+    }
     
-    /* DataTables UI Overrides */
+    .table-modern td { 
+        padding: 18px 15px; 
+        vertical-align: middle; 
+        border-bottom: 1px solid #f1f5f9; 
+    }
+
+    /* Removing Hover Effect specifically */
+    .table-modern.table-hover tbody tr:hover {
+        background-color: transparent !important;
+        color: inherit !important;
+    }
+
+    /* 4. DataTables UI Customization */
     .dataTables_wrapper .dataTables_filter input {
-        border-radius: 20px;
+        border-radius: 10px;
         padding: 8px 15px;
-        border: 1px solid #e2e8f0;
+        border: 1.5px solid #e2e8f0;
         margin-left: 10px;
-        width: 250px;
+        width: 280px;
+        font-size: 0.9rem;
     }
     .dataTables_wrapper .dataTables_paginate .paginate_button.current {
         background: #0d6efd !important;
         color: white !important;
-        border-radius: 8px;
+        border-radius: 10px;
         border: none;
     }
-    .table thead th { background-color: #f8fafc; color: #64748b; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; border-bottom: 2px solid #edf2f7; }
-    
-    /* Status Badges */
-    .status-badge { font-size: 0.7rem; font-weight: 800; padding: 6px 14px; border-radius: 30px; text-transform: uppercase; display: inline-flex; align-items: center; gap: 5px; }
+
+    /* 5. Status Badges */
+    .status-badge { font-size: 0.65rem; font-weight: 800; padding: 6px 14px; border-radius: 30px; text-transform: uppercase; display: inline-flex; align-items: center; gap: 5px; }
     .bg-pending { background: #fff7ed; color: #9a3412; border: 1px solid #ffedd5; }
     .bg-failed { background: #fef2f2; color: #991b1b; border: 1px solid #fee2e2; }
     .bg-success-light { background: #f0fdf4; color: #166534; border: 1px solid #dcfce7; }
     
-    .module-badge { background-color: #334155; color: #ffffff; font-weight: 700; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; }
-    .retry-count { font-family: 'Courier New', Courier, monospace; font-weight: bold; }
+    .module-badge { background-color: #334155; color: #ffffff; font-weight: 700; padding: 4px 10px; border-radius: 6px; font-size: 0.65rem; letter-spacing: 0.5px; }
+    .retry-count { font-family: 'JetBrains Mono', monospace; font-weight: bold; font-size: 0.85rem; }
 </style>
 
 <div class="container-fluid mt-4 px-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="fw-bold dashboard-title mb-0">Replication Queue</h1>
-            <p class="text-muted mb-0">Monitoring data sync across <strong>Indus Healthcare</strong> hubs</p>
+            <h2 class="fw-bold dashboard-title mb-0">Replication Queue</h2>
+            <p class="text-muted small mb-0">Monitoring data sync across <span class="text-primary fw-bold">Indus Healthcare</span> hubs</p>
         </div>
         <div class="d-flex gap-2">
             <form method="post" asp-page-handler="RetryFailed">
-                <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm">
-                    <i class="fas fa-redo-alt me-1"></i> Retry Failed
+                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                    <i class="fas fa-redo-alt me-1 text-white-50"></i> Retry Failed
                 </button>
             </form>
             <form method="post" asp-page-handler="ClearProcessed">
@@ -62,38 +91,37 @@
         </div>
     </div>
 
-    <div class="card queue-card p-4">
+    <div class="modern-table-container mb-5">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" id="syncTable">
+            <table class="table table-modern align-middle mb-0" id="syncTable">
                 <thead>
                     <tr>
-                        <th>Target Hub</th>
+                        <th class="ps-3">Target Hub</th>
                         <th>Module</th>
                         <th>Record ID</th>
                         <th class="text-center">Retries</th>
                         <th>Status</th>
                         <th>Added On</th>
-                        <th>Last Log / Error</th>
+                        <th class="pe-3">Audit Log</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var item in Model.SyncQueue)
                     {
                         <tr>
-                           <td>
-    @* Added ?. to ensure it doesn't crash if IntServer is null *@
-    <div class="fw-bold text-dark">@(item.IntServer?.VchServerName ?? "Unknown Hub")</div>
-    <div class="text-muted small">
-        <i class="fa fa-map-marker-alt me-1"></i>@(item.IntServer?.VchLocation ?? "N/A")
-    </div>
-</td>
+                           <td class="ps-3">
+                                <div class="fw-bold text-dark">@(item.IntServer?.VchServerName ?? "Unknown Hub")</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">
+                                    <i class="fa fa-location-dot me-1 text-danger opacity-75"></i>@(item.IntServer?.VchLocation ?? "Global")
+                                </div>
+                            </td>
                             <td>
                                 <span class="module-badge">@item.VchModule</span>
                             </td>
-                            <td class="fw-bold text-primary">#@item.IntRecordId</td>
+                            <td class="fw-bold text-primary font-monospace">#@item.IntRecordId</td>
                             <td class="text-center">
                                 <span class="retry-count @(item.IntRetryCount >= 4 ? "text-danger" : "text-muted")">
-                                    @item.IntRetryCount / 5
+                                    @item.IntRetryCount <small class="opacity-50">/ 5</small>
                                 </span>
                             </td>
                             <td>
@@ -106,22 +134,23 @@
                                 }
                             </td>
                             <td data-order="@(item.DtAdded?.Ticks ?? 0)">
-                                <small class="text-muted fw-bold">@item.DtAdded?.ToString("dd MMM, HH:mm")</small>
+                                <div class="fw-bold small text-dark">@item.DtAdded?.ToString("dd MMM")</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">@item.DtAdded?.ToString("HH:mm tt")</div>
                             </td>
-                            <td>
+                            <td class="pe-3">
                                 @if (item.BitProcessed == true) 
                                 {
-                                    <span class="text-success small"><i class="fa fa-check me-1"></i> Data Replicated Successfully</span> 
+                                    <span class="text-success small fw-medium"><i class="fa fa-check-double me-1 opacity-50"></i> Replicated</span> 
                                 }
                                 else if (!string.IsNullOrEmpty(item.VchErrorLog))
                                 {
-                                    <div class="text-danger small" title="@item.VchErrorLog" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                        <i class="fa fa-bug me-1"></i> @item.VchErrorLog
+                                    <div class="text-danger small font-monospace" title="@item.VchErrorLog" style="max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: #fff5f5; padding: 4px 8px; border-radius: 5px;">
+                                        @item.VchErrorLog
                                     </div>
                                 }
                                 else 
                                 {
-                                    <span class="text-muted small">Waiting in queue...</span>
+                                    <span class="text-muted small italic">In Queue...</span>
                                 }
                             </td>
                         </tr>
@@ -142,17 +171,17 @@
             $('#syncTable').DataTable({
                 "pageLength": 10,
                 "ordering": true,
-                "order": [[5, "desc"]], // Sort by Added On descending
+                "order": [[5, "desc"]], 
                 "language": {
                     "search": "",
-                    "searchPlaceholder": "Search server, module or ID...",
+                    "searchPlaceholder": "Filter logs...",
                     "paginate": {
-                        "next": '<i class="fas fa-chevron-right"></i>',
-                        "previous": '<i class="fas fa-chevron-left"></i>'
+                        "next": '<i class="fas fa-chevron-right small"></i>',
+                        "previous": '<i class="fas fa-chevron-left small"></i>'
                     }
                 },
                 "columnDefs": [
-                    { "orderable": false, "targets": [6] } // Disable sorting for Error Log
+                    { "orderable": false, "targets": [6] }
                 ]
             });
         });

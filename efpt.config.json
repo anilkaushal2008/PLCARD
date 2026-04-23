@@ -47,6 +47,14 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[EmailLogs]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[EmailMasters]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[ServerMaster]",
          "ObjectType": 0
       },

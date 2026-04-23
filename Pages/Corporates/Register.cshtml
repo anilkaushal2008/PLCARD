@@ -8,60 +8,62 @@
     :root {
         --primary-indigo: #4338ca;
         --error-red: #ef4444;
+        --input-border: #cbd5e1; /* Darkened for better visibility */
     }
 
-    /* ULTRA DEEP SHADOWS */
+    /* REMOVED HOVER EFFECTS */
     .shadow-ultra {
         box-shadow: 0 35px 70px rgba(0, 0, 0, 0.2), 0 15px 30px rgba(0, 0, 0, 0.08) !important;
         border: none !important;
+        transition: none !important; /* No movement */
     }
 
     .glass-card {
         border-radius: 30px;
         background: #fff;
+        transition: none !important;
+        transform: none !important;
     }
 
-    /* REQUIRED STAR */
+    /* IMPROVED TEXTBOX VISIBILITY */
+    .form-control-modern {
+        border: 2px solid var(--input-border); /* Visible border */
+        border-radius: 14px;
+        padding: 0.85rem 1.2rem;
+        background: #ffffff; /* Brighter white for contrast */
+        color: #1e293b; /* Darker text */
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        font-weight: 600;
+    }
+
+        .form-control-modern::placeholder {
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        .form-control-modern:focus {
+            background: #fff;
+            border-color: var(--primary-indigo);
+            box-shadow: 0 0 0 4px rgba(67, 56, 202, 0.15);
+            outline: none;
+        }
+
+    /* REQUIRED STAR & LABELS */
     .text-danger-star {
         color: var(--error-red);
         font-weight: bold;
-        margin-left: 2px;
     }
 
     .form-label {
         font-size: 0.72rem;
         font-weight: 800;
-        color: #64748b;
+        color: #475569; /* Darker label for clarity */
         margin-bottom: 6px;
         text-transform: uppercase;
         letter-spacing: 0.8px;
     }
 
-    .form-control-modern {
-        border: 2px solid #f1f5f9;
-        border-radius: 14px;
-        padding: 0.85rem 1.2rem;
-        background: #f8fafc;
-        transition: all 0.3s ease;
-        font-weight: 600;
-    }
-
-        .form-control-modern:focus {
-            background: #fff;
-            border-color: var(--primary-indigo);
-            box-shadow: 0 0 0 6px rgba(67, 56, 202, 0.12);
-            outline: none;
-        }
-
-    /* VALIDATION MESSAGES */
-    .field-validation-error {
-        color: var(--error-red);
-        font-size: 0.75rem;
-        font-weight: 600;
-        margin-top: 4px;
-        display: block;
-    }
-
+    /* SECTION DIVIDER */
     .section-divider {
         font-size: 0.9rem;
         font-weight: 900;
@@ -76,10 +78,11 @@
             content: "";
             flex: 1;
             height: 3px;
-            background: linear-gradient(to right, #f1f5f9, transparent);
+            background: linear-gradient(to right, #e2e8f0, transparent);
             border-radius: 10px;
         }
 
+    /* BUTTON - REMOVED HOVER TRANSFORM */
     .btn-save {
         background: linear-gradient(135deg, #4338ca, #3b82f6);
         color: white;
@@ -87,12 +90,13 @@
         padding: 16px 50px;
         font-weight: 800;
         border: none;
-        transition: all 0.4s ease;
+        transition: opacity 0.3s ease; /* Only fades, no movement */
     }
 
         .btn-save:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(67, 56, 202, 0.4);
+            opacity: 0.9;
+            transform: none !important; /* Forces button to stay still */
+            box-shadow: 0 10px 20px rgba(67, 56, 202, 0.2);
             color: white;
         }
     
@@ -129,8 +133,7 @@
         <input type="hidden" asp-for="Company.IntCompanyId" />
         <input type="hidden" asp-for="Company.VchAgreementPath" />
 
-        <div class="glass-card shadow-ultra p-4 p-md-4">
-            
+        <div class="glass-card shadow-ultra p-4 p-md-4">            
             <div class="section-divider"><i class="fa fa-building"></i> 1. Organization Information</div>
             <div class="row g-4 mb-4">
                 <div class="col-md-6">
@@ -138,20 +141,20 @@
                     <input asp-for="Company.VchCompanyName" class="form-control form-control-modern" placeholder="Legal Entity Name" />
                     <span asp-validation-for="Company.VchCompanyName"></span>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <label class="form-label">Corporate Plan <span class="text-danger-star">*</span></label>
                     <select asp-for="Company.IntPlanId" asp-items="Model.PlanList" class="form-select form-control-modern">
                         <option value="">-- Choose Assigned Plan --</option>
                     </select>
                     <span asp-validation-for="Company.IntPlanId"></span>
                 </div>
-                <div class="col-md-2 text-center">
+               @*   <div class="col-md-2 text-center">
                     <label class="form-label d-block">Credit Mode</label>
                     <div class="form-check form-switch d-inline-block mt-2">
                         <input asp-for="Company.BitIsCredit" class="form-check-input" type="checkbox" style="width: 3.5rem; height: 1.7rem; cursor:pointer;">
                         </div>
-                    </div>
-                </div>
+                    </div> *@
+                </div> 
 
                 <div class="section-divider"><i class="fa fa-file-contract"></i> 2. Agreement Setup</div>
                 <div class="row g-4 mb-4">

@@ -13,14 +13,15 @@
 
     .stat-card {
         border-radius: 20px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: none !important; 
         background: #fff;
         border: none;
     }
 
+    /* REMOVED STAT CARD HOVER */
     .stat-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.18) !important;
+        transform: none !important;
+        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.05) !important;
     }
 
     .dashboard-title {
@@ -29,7 +30,7 @@
         -webkit-text-fill-color: transparent;
     }
 
-    /* TABLE STYLING */
+    /* TABLE STYLING - STATIC MODE */
     .table-container { border-radius: 22px; background: #fff; overflow: hidden; }
     
     .table thead th {
@@ -41,6 +42,26 @@
         color: #475569;
         padding: 18px;
         border-bottom: 2px solid #f1f5f9;
+    }
+
+    /* FORCE DISABLE ALL TABLE HIGHLIGHTS */
+    #companyTable, 
+    #companyTable tbody tr, 
+    #companyTable tbody td {
+        --bs-table-accent-bg: transparent !important;
+        --bs-table-hover-bg: transparent !important;
+        --bs-table-bg: #ffffff !important;
+        background-color: #ffffff !important;
+        transition: none !important;
+        cursor: default !important;
+    }
+
+    #companyTable tbody tr:hover, 
+    #companyTable tbody tr:hover td,
+    #companyTable tbody tr:hover > * {
+        background-color: #ffffff !important;
+        color: inherit !important;
+        box-shadow: none !important;
     }
 
     .company-avatar {
@@ -139,7 +160,7 @@
 
     <div class="card shadow-heavy table-container border-0 mb-5">
         <div class="card-body p-0">
-            <table id="companyTable" class="table table-hover align-middle mb-0">
+            <table id="companyTable" class="table align-middle mb-0">
                 <thead>
                     <tr>
                         <th class="ps-4">Company Details</th>
@@ -153,8 +174,6 @@
                     @foreach (var item in Model.Companies)
                     {
                         var firstLetter = !string.IsNullOrEmpty(item.VchCompanyName) ? item.VchCompanyName[0].ToString().ToUpper() : "C";
-                        
-                        // Expiry Calculations
                         bool hasDate = item.DtAgreementEnd.HasValue;
                         var diff = hasDate ? (item.DtAgreementEnd.Value.Date - DateTime.Today).TotalDays : 999;
                         bool isExpired = hasDate && diff < 0;
@@ -172,10 +191,10 @@
                             </td>
                             <td>
                                 <span class="badge-plan mb-1 d-inline-block">@item.IntPlan?.VchPlanName</span>
-                                <div>
+                               @*  <div>
                                     @if(item.BitIsCredit) { <small class="text-success fw-bold"><i class="fa fa-check-circle me-1"></i>Credit Enabled</small> }
                                     else { <small class="text-muted"><i class="fa fa-coins me-1"></i>Cash Billing</small> }
-                                </div>
+                                </div> *@
                             </td>
                             <td>
                                 <div class="fw-bold text-dark">@item.VchContactPerson</div>
@@ -219,7 +238,6 @@
                 "dom": '<"d-flex justify-content-between align-items-center p-3"lf>rt<"p-3 d-flex justify-content-between align-items-center"ip>',
                 "language": { "search": "", "searchPlaceholder": "🔍 Search by name, plan or contact..." }
             });
-            // Match global search box style
             $('.dataTables_filter input').addClass('form-control bg-light border-0 shadow-soft px-4 rounded-pill').css('width', '320px');
         });
     </script>

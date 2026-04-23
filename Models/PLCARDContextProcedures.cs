@@ -63,7 +63,7 @@ namespace PLCARD.Models
             return _;
         }
 
-        public virtual async Task<List<sp_GetCardRegistrationReportResult>> sp_GetCardRegistrationReportAsync(DateTime? fromDate, DateTime? toDate, int? pageNum, int? pageSize, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        public virtual async Task<List<sp_GetCardRegistrationReportResult>> sp_GetCardRegistrationReportAsync(DateTime? fromDate, DateTime? toDate, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
         {
             var parameterreturnValue = new SqlParameter
             {
@@ -86,21 +86,9 @@ namespace PLCARD.Models
                     Value = toDate ?? Convert.DBNull,
                     SqlDbType = System.Data.SqlDbType.DateTime,
                 },
-                new SqlParameter
-                {
-                    ParameterName = "PageNum",
-                    Value = pageNum ?? Convert.DBNull,
-                    SqlDbType = System.Data.SqlDbType.Int,
-                },
-                new SqlParameter
-                {
-                    ParameterName = "PageSize",
-                    Value = pageSize ?? Convert.DBNull,
-                    SqlDbType = System.Data.SqlDbType.Int,
-                },
                 parameterreturnValue,
             };
-            var _ = await _context.SqlQueryAsync<sp_GetCardRegistrationReportResult>("EXEC @returnValue = [dbo].[sp_GetCardRegistrationReport] @FromDate = @FromDate, @ToDate = @ToDate, @PageNum = @PageNum, @PageSize = @PageSize", sqlParameters, cancellationToken);
+            var _ = await _context.SqlQueryAsync<sp_GetCardRegistrationReportResult>("EXEC @returnValue = [dbo].[sp_GetCardRegistrationReport] @FromDate = @FromDate, @ToDate = @ToDate", sqlParameters, cancellationToken);
 
             returnValue?.SetValue(parameterreturnValue.Value);
 

@@ -14,6 +14,6 @@ namespace PLCARD.Models
     public partial interface IPLCARDContextProcedures
     {
         Task<List<sp_CleanOldSyncDataResult>> sp_CleanOldSyncDataAsync(OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
-        Task<List<sp_GetCardRegistrationReportResult>> sp_GetCardRegistrationReportAsync(DateTime? fromDate, DateTime? toDate, int? pageNum, int? pageSize, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<sp_GetCardRegistrationReportResult>> sp_GetCardRegistrationReportAsync(DateTime? fromDate, DateTime? toDate, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
     }
 }

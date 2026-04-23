@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PLCARD.Data;
 using PLCARD.Models;
+using PLCARD.Services;
 
 namespace PLCARD.Pages.Corporates
 {
@@ -11,12 +12,14 @@ namespace PLCARD.Pages.Corporates
     {
         private readonly PLCARDContext _context;
         private readonly IWebHostEnvironment _environment;
+        private readonly EmailNotificationService _emailService;
 
         // TRADITIONAL CONSTRUCTOR (Fixes Hot Reload Error)
-        public RegisterModel(PLCARDContext context, IWebHostEnvironment environment)
+        public RegisterModel(PLCARDContext context, IWebHostEnvironment environment, EmailNotificationService emailservices)
         {
             _context = context;
             _environment = environment;
+            _emailService = emailservices;
         }
 
         [BindProperty]
@@ -82,6 +85,7 @@ namespace PLCARD.Pages.Corporates
                 Company.VchCreatedBy = currentUser;
                 Company.VchCreatedHost = currentHost;
                 _context.TblCompanyRegistration.Add(Company);
+                await _emailService.SendCorporateNotificationAsync(Company.VchCompanyName);
             }
             else
             {
