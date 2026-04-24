@@ -158,10 +158,14 @@
                                     <ul class="dropdown-menu">
                                         <li><a class="dropdown-item" asp-page="/Masters/CardMaster/Index"><i class="fa fa-id-card"></i> Card Master</a></li>
                                         <li><a class="dropdown-item" asp-page="/Masters/PlanMaster/Index"><i class="fa fa-building-circle-check"></i> Plan Master</a></li>
-                                        <li><hr class="dropdown-divider"></li>
+                                       
+                                        @if(User.IsInRole("SuperAdmin"))
+                                        {
+                                             <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item fw-bold text-primary" asp-page="/Admin/ALLUser"><i class="fa fa-users-gear"></i> User Management</a></li>
                                         <li><a class="dropdown-item fw-bold text-primary" asp-page="/Admin/RoleMaster"><i class="fa fa-shield-halved"></i> Role Master</a></li>
                                         <li><a class="dropdown-item fw-bold text-success" asp-area="Identity" asp-page="/Account/Register"><i class="fa fa-user-plus"></i> Create New Staff</a></li>
+                                         }
                                     </ul>
                                 </li>
                             }
@@ -189,12 +193,14 @@
                                         </ul>
                                     </li>
                                 }
-@if (User.IsInRole("Admin"))
+@if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
 {<li class="nav-item dropdown">
     <a class="nav-link dropdown-toggle text-dark" href="#" id="syncDrop" role="button" data-bs-toggle="dropdown">
         <i class="fa fa-globe me-1 text-primary"></i> Global Sync <span class="admin-badge">Admin</span>
     </a>
     <ul class="dropdown-menu shadow-lg border-0">
+        @if(User.IsInRole("SuperAdmin"))
+        {
         <li><h6 class="dropdown-header text-uppercase small fw-bold">Server Audits</h6></li>
         <li>
             <a class="dropdown-item fw-bold text-primary" asp-page="/Admin/ServiceTypeMaster">
@@ -204,21 +210,24 @@
         <li><a class="dropdown-item" asp-page="/Admin/ServerRegistry"><i class="fa fa-plus-circle text-info"></i> Hub Registration</a></li>
         <li><a class="dropdown-item" asp-page="/Admin/SyncCenter"><i class="fa fa-server text-success"></i> Server Monitor</a></li>
         <li><a class="dropdown-item" asp-page="/Admin/SyncQueue"><i class="fa fa-arrow-right-arrow-left text-warning"></i> Replication Queue</a></li>
+        }
+       @if(User.IsInRole("Admin"))
+        {
+         <li><hr class="dropdown-divider"></li>
 
-        <li><hr class="dropdown-divider"></li>
-
-        <li><h6 class="dropdown-header text-uppercase small fw-bold">Communication</h6></li>
-        <li>
-            <a class="dropdown-item" asp-page="/Admin/EmailMaster">
-                <i class="fa fa-envelope text-primary"></i> Email Master
-            </a>
-        </li>
-        <li>
-            <a class="dropdown-item" asp-page="/Admin/EmailAudit">
-                <i class="fa fa-clipboard-check text-success"></i> Email Audit Logs
-            </a>
-        </li>
-    </ul>
+                                                <li><h6 class="dropdown-header text-uppercase small fw-bold">Communication</h6></li>
+                                                <li>
+                                                    <a class="dropdown-item" asp-page="/Admin/EmailMaster">
+                                                        <i class="fa fa-envelope text-primary"></i> Email Master
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" asp-page="/Admin/EmailAudit">
+                                                        <i class="fa fa-clipboard-check text-success"></i> Email Audit Logs
+                                                    </a>
+                                                </li>
+                                            }
+                                        </ul>                                       
 </li>
         }
      }
