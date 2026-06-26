@@ -26,26 +26,20 @@ namespace PLCARD.Pages.Admin
                 .OrderByDescending(l => l.SentAt)
                 .Take(500)
                 .ToListAsync() ?? new List<EmailLogs>();
-        }
-
-        public async Task<IActionResult> OnPostResendAsync(int logId, string companyName)
+        }        
+        public async Task<IActionResult> OnPostResendAsync(int logId)
         {
-            // 1. Trigger the email service
-            // We keep the service call general as per your existing logic
-            await _emailService.SendCorporateNotificationAsync(companyName);
+            // 1. Call the targeted Resend method instead of the bulk service
+            bool isSuccess = await _emailService.ResendCorporateNotificationAsync(logId);
 
-            // 2. Find the specific failed log in the database
-            var existingLog = await _context.EmailLogs.FindAsync(logId);
-
-            if (existingLog != null)
+            // 2. Set user feedback based on the result
+            if (isSuccess)
             {
-                // 3. Update the existing record to Success
-                existingLog.SentStatus = "Success";
-                existingLog.SentAt = DateTime.Now; // Update to latest time
-                existingLog.ErrorMessage = null;   // Clear the old "Failure sending mail" error
-
-                await _context.SaveChangesAsync();
-                TempData["Message"] = $"Email for {companyName} has been successfully resent and updated.";
+                TempData["Message"] = "Email re-sent successfully for the selected recipient.";
+            }
+            else
+            {
+                TempData["Message"] = "Failed to resend the email. Please check the Audit Trace.";
             }
 
             return RedirectToPage();

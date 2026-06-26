@@ -5,6 +5,9 @@
 }
 
 <style>
+    .table-responsive {
+        min-height: 200px; /* Prevents container from collapsing when empty */
+    }
     /* 1. Dashboard Layout & Typography */
     .dashboard-title { letter-spacing: -0.5px; color: #1e293b; }
 
@@ -79,8 +82,16 @@
             <h2 class="fw-bold dashboard-title mb-0">Email Delivery Audit</h2>
             <p class="text-muted small mb-0">Indus Healthcare Group: Monitoring Communication & Notifications</p>
         </div>
+
         <div class="text-end">
-             <span class="badge bg-light text-dark border rounded-pill px-3 py-2 shadow-sm">
+            <form method="post" asp-page-handler="ClearLogs" style="display:inline;">
+                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 shadow-sm"
+                        onclick="return confirm('Are you sure you want to delete all logs? This cannot be undone.');">
+                    <i class="fa fa-trash-alt me-1"></i> Clear All Logs
+                </button>
+            </form>
+
+            <span class="badge bg-light text-dark border rounded-pill px-3 py-2 shadow-sm ms-2">
                 <i class="fa fa-history me-1 text-primary"></i> Last 500 Dispatch Logs
             </span>
         </div>
@@ -157,10 +168,7 @@
                                 </td>
                                 <td class="text-end pe-4">
                                     @* Manual Resend Trigger *@
-                                    <form method="post" asp-page-handler="Resend" 
-                                          asp-route-companyName="@log.CompanyName" 
-                                          asp-route-logId="@log.Id"
-                                          asp-route-recipientEmail="@log.RecipientEmail">
+                                    <form method="post" asp-page-handler="Resend" asp-route-logId="@log.Id">
                                         <button type="submit" class="btn btn-sm btn-dark rounded-pill px-3 fw-bold shadow-sm">
                                             <i class="fa fa-rotate-right me-1 small opacity-75"></i> RESEND
                                         </button>
